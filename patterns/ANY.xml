@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model>
+	<name>任意文件</name>
+	<file>
+		<name>(?:^|[\\/])([\x20-\x7E]+)\.\w+$</name>
+		<code>.*?([^\\/]+)\.</code>
+		<example>2025-10-22\YDA13115101GSK216364.ext</example>
+	</file>
+</model>

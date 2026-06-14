@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model>
+	<name>哈尔滨创博科技齿轮啮合检测仪CS20T</name>
+	<file>
+		<name>(?:^|[\\/])([\x20-\x7E]+)\.jpg$</name>
+		<code>.*?([^\\/]+)\.jpg$</code>
+		<example>2025-10-22\15013110DF727A01G\YDA13115101GSK216364.jpg</example>
+	</file>
+</model>

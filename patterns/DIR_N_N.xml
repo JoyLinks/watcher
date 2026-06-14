@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model>
+	<name>二码合一文件夹</name>
+	<file>
+		<name>([ -~&amp;&amp;[^\\\\/]]+-[ -~&amp;&amp;[^\\\\/]]+)</name>
+		<code>([ -~&amp;&amp;[^\\\\/]]+-[ -~&amp;&amp;[^\\\\/]]+)</code>
+		<example>\2026-6-13\DA113DTF080062-DA113ETF100376\*</example>
+	</file>
+</model>

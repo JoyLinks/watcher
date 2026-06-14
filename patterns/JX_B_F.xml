@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model>
+	<name>家馨智能精密伺服力控</name>
+	<file>
+		<name>(?:^|[\\/])(.+)\.csv$</name>
+		<code>：\d+-\d+-\d+-([\x20-\x7E]+?)\.</code>
+		<example>2025-10-22\PEF112C02-1130：05-06-20-251119282 20251122 0307..csv</example>
+	</file>
+</model>
