@@ -90,6 +90,7 @@ public final class Backdoor {
 					} else {
 						setting.update(parameters);
 						Application.reset();
+						setting.save();
 					}
 					setting.extract(parameters);
 					slave.send(parameters);
