@@ -63,7 +63,6 @@ public class Uploader implements Runnable {
 	}
 
 	public void add(TaskFile task) {
-		Logger.debug("TASK ", task);
 		QUEUE.add(task);
 	}
 

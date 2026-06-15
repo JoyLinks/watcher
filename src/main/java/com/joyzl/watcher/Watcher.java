@@ -31,7 +31,6 @@ import com.joyzl.logger.Logger;
 public class Watcher extends Thread {
 
 	private final WatchService watch;
-	private final Map<Path, WatchKey> keys = new HashMap<>();
 	private final Uploader uploader;
 	private final Model model;
 	private final Path path;
@@ -41,48 +40,48 @@ public class Watcher extends Thread {
 
 	public Watcher(Uploader uploader, Model model, Path path) throws IOException {
 		watch = FileSystems.getDefault().newWatchService();
-		register(this.path = path);
 		this.uploader = uploader;
 		this.model = model;
+		this.path = path;
 	}
 
-	private void register(Path path) throws IOException {
-		// 遍历所有文件夹，包含最外层
-		Files.walkFileTree(path, new SimpleFileVisitor<>() {
-			@Override
-			public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-				if (exc == null) {
-					Logger.debug("WATCH ", dir);
-					keys.put(dir, dir.register(watch, //
-						StandardWatchEventKinds.ENTRY_CREATE, //
-						StandardWatchEventKinds.ENTRY_DELETE, //
-						StandardWatchEventKinds.OVERFLOW));
-					return FileVisitResult.CONTINUE;
-				} else {
-					throw exc;
-				}
-			}
-		});
-	}
-
-	public void close() {
-		try {
-			watch.close();
-		} catch (IOException e) {
-			Logger.error(e);
-		} finally {
-			keys.clear();
-		}
-		interrupt();
-	}
+	private final Map<Path, WatchKey> watchs = new HashMap<>();
 
 	public void run() {
-		Path relative, absolute;
-		WatchKey key;
+		// 每个被监视目录响应内部变化事件
+		// 不会触发被监视目录自身的变化
+		// 不会触发子目录内的变化
 		try {
-			// 每个被监视目录响应内部变化事件
-			// 不会触发被监视目录自身的变化
-			// 不会触发子目录内的变化
+			// 遍历所有文件夹，包含最外层
+			Files.walkFileTree(path, new SimpleFileVisitor<>() {
+				@Override
+				public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+					if (exc == null) {
+						// 过滤匹配目录，不含文件名
+						// 这些目录是历史结果性的，特别是按目录匹配时
+						Matcher matcher;
+						for (ModelFile file : model.files()) {
+							matcher = file.name().matcher(dir.toString());
+							if (matcher.find()) {
+								return FileVisitResult.CONTINUE;
+							}
+						}
+
+						Logger.debug("WATCH ", dir);
+						watchs.put(dir, dir.register(watch, //
+							StandardWatchEventKinds.ENTRY_CREATE, //
+							StandardWatchEventKinds.ENTRY_DELETE, //
+							StandardWatchEventKinds.OVERFLOW));
+						return FileVisitResult.CONTINUE;
+					} else {
+						throw exc;
+					}
+				}
+			});
+
+			// 阻塞线程等待事件
+			WatchKey key;
+			Path relative, absolute, last = path;
 			while ((key = watch.take()) != null) {
 				for (WatchEvent<?> event : key.pollEvents()) {
 					if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
@@ -91,11 +90,22 @@ public class Watcher extends Thread {
 							absolute = ((Path) key.watchable()).resolve(relative);
 							try {
 								if (Files.isDirectory(absolute)) {
-									register(absolute);
+									Logger.debug("WATCH ", absolute);
+									watchs.put(absolute, absolute.register(watch, //
+										StandardWatchEventKinds.ENTRY_CREATE, //
+										StandardWatchEventKinds.ENTRY_DELETE, //
+										StandardWatchEventKinds.OVERFLOW));
 								} else {
 									// 如果有目录确保相对路径包含目录
 									relative = absolute.subpath(path.getNameCount(), absolute.getNameCount());
-									match(absolute, relative);
+									if (last.equals(relative)) {
+										// 经测试存在重复创建同一个文件的情况
+										// 因此须执行排重，避免相同文件多次上传
+										continue;
+									} else {
+										match(absolute, relative);
+										last = relative;
+									}
 								}
 							} catch (IOException e) {
 								Logger.error(e);
@@ -107,7 +117,7 @@ public class Watcher extends Thread {
 						relative = (Path) event.context();
 						if (relative != null) {
 							absolute = ((Path) key.watchable()).resolve(relative);
-							final WatchKey k = keys.remove(absolute);
+							final WatchKey k = watchs.remove(absolute);
 							if (k != null) {
 								k.cancel();
 							}
@@ -142,10 +152,24 @@ public class Watcher extends Thread {
 					Logger.debug("MATCH ", code, " ", p);
 					uploader.add(task);
 					size++;
-					break;
+
+					// 允许多个正则表达式匹配，因此不中断
+					// 例如二码合一时，要按单个码提取时
+					// break;
 				}
 			}
 		}
+	}
+
+	public void close() {
+		try {
+			watch.close();
+		} catch (IOException e) {
+			Logger.error(e);
+		} finally {
+			watchs.clear();
+		}
+		interrupt();
 	}
 
 	public Path path() {

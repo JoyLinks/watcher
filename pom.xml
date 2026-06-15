@@ -6,7 +6,7 @@
 
 	<groupId>com.joyzl</groupId>
 	<artifactId>watcher</artifactId>
-	<version>1.1.1</version>
+	<version>1.1.2</version>
 
 	<name>JOYZL Watcher</name>
 	<description>文档自动归集客户端工具软件</description>
@@ -116,6 +116,7 @@
 										<include>watcher.properties</include>
 										<include>watcher.ico</include>
 										<include>watcher.png</include>
+										<include>autostart.ps1</include>
 										<include>install.cmd</include>
 										<include>install.sh</include>
 										<include>readme.md</include>
