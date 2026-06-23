@@ -16,6 +16,7 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -28,7 +29,7 @@ import com.joyzl.logger.Logger;
  * @author simon (ZhangXi TEL:13883833982)
  * @date 2025年10月21日
  */
-public class Watcher extends Thread {
+final class Watcher extends Thread {
 
 	private final WatchService watch;
 	private final Uploader uploader;
@@ -46,6 +47,30 @@ public class Watcher extends Thread {
 	}
 
 	private final Map<Path, WatchKey> watchs = new HashMap<>();
+	private final SimpleFileVisitor<Path> visitor = new SimpleFileVisitor<>() {
+		// 处理监视后创建的目录
+		// 遍历其中的所有子目录和文件
+		@Override
+		public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+			if (exc == null) {
+				Logger.debug("WATCH ", dir);
+				watchs.put(dir, dir.register(watch, //
+					StandardWatchEventKinds.ENTRY_CREATE, //
+					StandardWatchEventKinds.ENTRY_DELETE, //
+					StandardWatchEventKinds.OVERFLOW));
+				return FileVisitResult.CONTINUE;
+			} else {
+				throw exc;
+			}
+		}
+
+		@Override
+		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+			final Path relative = file.subpath(path.getNameCount(), file.getNameCount());
+			match(file, relative);
+			return FileVisitResult.CONTINUE;
+		}
+	};
 
 	public void run() {
 		// 每个被监视目录响应内部变化事件
@@ -90,11 +115,16 @@ public class Watcher extends Thread {
 							absolute = ((Path) key.watchable()).resolve(relative);
 							try {
 								if (Files.isDirectory(absolute)) {
-									Logger.debug("WATCH ", absolute);
-									watchs.put(absolute, absolute.register(watch, //
-										StandardWatchEventKinds.ENTRY_CREATE, //
-										StandardWatchEventKinds.ENTRY_DELETE, //
-										StandardWatchEventKinds.OVERFLOW));
+									// Logger.debug("WATCH ", absolute);
+									// watchs.put(absolute,
+									// absolute.register(watch, //
+									// StandardWatchEventKinds.ENTRY_CREATE, //
+									// StandardWatchEventKinds.ENTRY_DELETE, //
+									// StandardWatchEventKinds.OVERFLOW));
+
+									// 如果目录是移动而来，其中的文件不会触发事件
+									// 以下遍历将包括最外层目录，无须单独处理外层
+									Files.walkFileTree(absolute, visitor);
 								} else {
 									// 如果有目录确保相对路径包含目录
 									relative = absolute.subpath(path.getNameCount(), absolute.getNameCount());
@@ -140,7 +170,7 @@ public class Watcher extends Thread {
 	/** a绝对路径 r相对路径 */
 	private void match(Path absolute, Path relative) throws IOException {
 		final String p = relative.toString();
-		// Logger.debug(p);
+		Logger.debug(p);
 		Matcher matcher;
 		for (ModelFile file : model.files()) {
 			matcher = file.name().matcher(p);

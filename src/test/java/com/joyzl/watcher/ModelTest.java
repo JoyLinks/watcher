@@ -182,6 +182,9 @@ class ModelTest {
 		m = name.matcher("123456789-098765432\\1 (1).jpg");
 		assertTrue(m.find());
 
+		m = name.matcher("214601667-mcccmaw260614y0831+260601245 20260604 0061\\1.jpg");
+		assertTrue(m.find());
+
 		final Pattern code = Pattern.compile("([ -~&&[^\\\\/]]+-[ -~&&[^\\\\/]]+)");
 		System.out.println(code);
 

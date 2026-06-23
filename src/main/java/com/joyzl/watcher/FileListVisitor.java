@@ -19,7 +19,7 @@ import java.util.List;
  * @author simon (ZhangXi TEL:13883833982)
  * @date 2026年6月13日
  */
-public class FileListVisitor extends SimpleFileVisitor<Path> {
+final class FileListVisitor extends SimpleFileVisitor<Path> {
 
 	private final List<Path> files = new ArrayList<>();
 

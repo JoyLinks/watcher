@@ -17,7 +17,7 @@ import java.nio.file.attribute.BasicFileAttributes;
  * @author simon (ZhangXi TEL:13883833982)
  * @date 2026年6月13日
  */
-public class FileSizeVisitor extends SimpleFileVisitor<Path> {
+final class FileSizeVisitor extends SimpleFileVisitor<Path> {
 
 	private long total = 0;
 

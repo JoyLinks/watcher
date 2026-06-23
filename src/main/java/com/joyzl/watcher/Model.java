@@ -26,7 +26,7 @@ import com.joyzl.codec.XMLReader;
  * @author simon (ZhangXi TEL:13883833982)
  * @date 2025年10月22日
  */
-public class Model {
+final class Model {
 
 	private final String name;
 	private final List<ModelFile> files = new ArrayList<>();

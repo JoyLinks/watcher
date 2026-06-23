@@ -22,7 +22,7 @@ import java.util.List;
  * @author simon (ZhangXi TEL:13883833982)
  * @date 2025年10月29日
  */
-public class Avoidance {
+final class Avoidance {
 
 	static Path file() {
 		final String dir = System.getProperty("java.io.tmpdir");

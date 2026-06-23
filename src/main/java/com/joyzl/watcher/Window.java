@@ -45,7 +45,7 @@ import com.joyzl.logger.Logger;
  * @author simon (ZhangXi TEL:13883833982)
  * @date 2025年10月24日
  */
-public final class Window {
+final class Window {
 
 	private static Window instance;
 

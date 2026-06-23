@@ -8,7 +8,7 @@ echo
 
 mvn -f pom.xml clean package -U
 
-VERSION=1.1.0
+VERSION=1.1.3
 ARCH=$(arch)
 
 # 移除目标目录

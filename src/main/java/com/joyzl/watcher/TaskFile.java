@@ -16,7 +16,7 @@ import java.nio.file.Path;
  * @author simon (ZhangXi TEL:13883833982)
  * @date 2025年10月22日
  */
-public class TaskFile {
+final class TaskFile {
 
 	private final Path file;
 	private final String code;

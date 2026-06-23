@@ -18,6 +18,7 @@ import com.joyzl.network.chain.ChainGenericsHandler;
 import com.joyzl.network.chain.UDPServer;
 import com.joyzl.network.chain.UDPSlave;
 import com.joyzl.network.codec.KeyValueCoder;
+import com.joyzl.watcher.Backdoor.Parameters;
 
 /**
  * 基于UDP远程发现与配置
@@ -25,7 +26,7 @@ import com.joyzl.network.codec.KeyValueCoder;
  * @author simon (ZhangXi TEL:13883833982)
  * @date 2026年1月7日
  */
-public final class Backdoor {
+final class Backdoor implements ChainGenericsHandler<UDPSlave, Parameters> {
 
 	private UDPServer server;
 	private Setting setting;
@@ -49,7 +50,7 @@ public final class Backdoor {
 			}
 			close();
 		}
-		server = new UDPServer(new Handler(), host, port > 0 ? port : 1030);
+		server = new UDPServer(this, host, port > 0 ? port : 1030);
 		server.receive();
 	}
 
@@ -60,79 +61,65 @@ public final class Backdoor {
 		}
 	}
 
-	private class Handler implements ChainGenericsHandler<UDPSlave, Object> {
+	@Override
+	public void connected(UDPSlave slave) throws Exception {
+	}
 
-		@Override
-		public void connected(UDPSlave slave) throws Exception {
+	@Override
+	public Parameters decode(UDPSlave slave, DataBuffer buffer) throws Exception {
+		final byte value = buffer.backByte();
+		if (value == 0x05) {
+			final Parameters parameters = new Parameters();
+			KeyValueCoder.decode(parameters, buffer);
+			return parameters;
+		} else {
+			buffer.clear();
+			return null;
 		}
+	}
 
-		@Override
-		public Object decode(UDPSlave slave, DataBuffer buffer) throws Exception {
-			final byte value = buffer.backByte();
-			if (value == 0x0D || value == 0x0A) {
-				return new String(buffer.readASCIIs(buffer.readable()));
-			} else if (value == 0x05) {
-				final Parameters parameters = new Parameters();
-				KeyValueCoder.decode(parameters, buffer);
-				return parameters;
+	@Override
+	public void received(UDPSlave slave, Parameters message) throws Exception {
+		if (message != null) {
+			if (message.isEmpty()) {
 			} else {
-				buffer.clear();
-				return null;
+				setting.update(message);
+				Application.reset();
+				setting.save();
 			}
+			setting.extract(message);
+			slave.send(message);
 		}
+	}
 
-		@Override
-		public void received(UDPSlave slave, Object message) throws Exception {
-			if (message != null) {
-				// SETTING
-				if (message instanceof Parameters parameters) {
-					if (parameters.isEmpty()) {
-					} else {
-						setting.update(parameters);
-						Application.reset();
-						setting.save();
-					}
-					setting.extract(parameters);
-					slave.send(parameters);
-				}
-			}
-		}
+	@Override
+	public DataBuffer encode(UDPSlave slave, Parameters message) throws Exception {
+		final DataBuffer buffer = DataBuffer.instance();
+		KeyValueCoder.encode(message, buffer);
+		buffer.writeByte(0x05);
+		return buffer;
+	}
 
-		@Override
-		public DataBuffer encode(UDPSlave slave, Object message) throws Exception {
-			final DataBuffer buffer = DataBuffer.instance();
-			if (message instanceof String) {
-				buffer.writeASCIIs(message.toString());
-			} else if (message instanceof Parameters parameters) {
-				KeyValueCoder.encode(parameters, buffer);
-				buffer.writeByte(0x05);
-			} else {
-				throw new UnsupportedOperationException(message.getClass().toString());
-			}
-			return buffer;
-		}
+	@Override
+	public void sent(UDPSlave slave, Parameters message) throws Exception {
+	}
 
-		@Override
-		public void sent(UDPSlave slave, Object message) throws Exception {
-		}
+	@Override
+	public void disconnected(UDPSlave chain) throws Exception {
+	}
 
-		@Override
-		public void disconnected(UDPSlave chain) throws Exception {
-		}
+	@Override
+	public void error(ChainChannel chain, Throwable e) {
+		Logger.error(e);
+	}
 
-		@Override
-		public void error(ChainChannel chain, Throwable e) {
-			Logger.error(e);
-		}
+	@Override
+	public void beat(UDPSlave slave) throws Exception {
+	}
 
-		@Override
-		public void beat(UDPSlave slave) throws Exception {
-		}
-
-		@Override
-		public void error(UDPSlave chain, Throwable e) {
-			Logger.error(e);
-		}
+	@Override
+	public void error(UDPSlave chain, Throwable e) {
+		Logger.error(e);
 	}
 
 	// 避免泛型警告

@@ -36,7 +36,7 @@ import com.joyzl.network.http.Response;
  * @author simon (ZhangXi TEL:13883833982)
  * @date 2025年10月22日
  */
-public class Uploader implements Runnable {
+final class Uploader implements Runnable {
 
 	private final String url;
 	private final String host, path;

@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
  * @author simon (ZhangXi TEL:13883833982)
  * @date 2025年10月22日
  */
-public class ModelFile {
+final class ModelFile {
 
 	private final String example;
 	private final Pattern name;

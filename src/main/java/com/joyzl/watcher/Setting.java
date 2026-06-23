@@ -20,7 +20,7 @@ import java.util.Properties;
  * @author simon (ZhangXi TEL:13883833982)
  * @date 2025年8月21日
  */
-public class Setting {
+final class Setting {
 
 	private String udp;
 	private String number;

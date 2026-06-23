@@ -26,7 +26,7 @@ import com.joyzl.logger.Logger;
  * @author simon (ZhangXi TEL:13883833982)
  * @date 2025年10月21日
  */
-public class Tray implements ActionListener, MouseListener {
+final class Tray implements ActionListener, MouseListener {
 
 	private static Tray instance;
 
