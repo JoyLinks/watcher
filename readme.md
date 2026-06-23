@@ -98,6 +98,15 @@ patterns 文件夹中是可选用于识别文件的配置文件。
 * 如果上传之前文件被删除，监视软件会忽略此文件；
 * 如果已上传文件被删除，监视软件忽略此行为。
 
+### 发现与管理
+
+可通过UDP端口发现局域网中部署的所有 JOYZL Watcher 程序；
+可通过UDP端口远程配置 JOYZL Watcher 程序参数；
+这为大量部署时提供维护配置便利。
+
+JOYZL SCADA Station 客户端集成了发现与远程配置桌面工具，
+访问 [scada.joyzl.com](http://scada.joyzl.com) 获取更多信息。
+
 ---
 [www.joyzl.com](http://www.joyzl.com)
 
