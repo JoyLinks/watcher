@@ -13,6 +13,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
 import java.awt.Image;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -35,6 +37,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.TransferHandler;
 import javax.swing.border.EmptyBorder;
 
 import com.joyzl.logger.Logger;
@@ -176,6 +179,7 @@ final class Window {
 
 		// 将面板添加到窗口
 		frame.getContentPane().add(main);
+		frame.setTransferHandler(new FileDropHandler("匹配上传"));
 
 		// 双击选择目录
 		watch.addMouseListener(new MouseAdapter() {
@@ -404,6 +408,45 @@ final class Window {
 		} catch (HeadlessException e) {
 			// 没有桌面环境
 			return;
+		}
+	}
+
+	/** 文件/目录拖放 */
+	private class FileDropHandler extends TransferHandler {
+		private static final long serialVersionUID = 1L;
+
+		private FileDropHandler(String name) {
+			super(name);
+		}
+
+		@Override
+		public boolean canImport(TransferSupport support) {
+			// 检查拖放的数据是否是文件列表
+			return Application.watcher() != null && support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
+		}
+
+		@Override
+		public boolean importData(TransferSupport support) {
+			if (canImport(support)) {
+				try {
+					// 获取拖放的数据
+					final Transferable transferable = support.getTransferable();
+					final Object data = transferable.getTransferData(DataFlavor.javaFileListFlavor);
+					if (data != null) {
+						if (data instanceof List<?> items) {
+							for (Object item : items) {
+								if (item instanceof File file) {
+									Application.watcher().match(file);
+								}
+							}
+							return true;
+						}
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			return false;
 		}
 	}
 }

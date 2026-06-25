@@ -23,7 +23,7 @@ final class TaskFile {
 	private final long time;
 	private long size;
 
-	public TaskFile(Path file, String code) throws IOException {
+	public TaskFile(Path file, String code) {
 		this.time = System.currentTimeMillis();
 		this.file = file;
 		this.code = code;

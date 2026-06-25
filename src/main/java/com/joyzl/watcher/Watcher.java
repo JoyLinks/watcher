@@ -5,6 +5,7 @@
  */
 package com.joyzl.watcher;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.FileSystems;
@@ -168,9 +169,8 @@ final class Watcher extends Thread {
 	}
 
 	/** a绝对路径 r相对路径 */
-	private void match(Path absolute, Path relative) throws IOException {
+	private void match(Path absolute, Path relative) {
 		final String p = relative.toString();
-		Logger.debug(p);
 		Matcher matcher;
 		for (ModelFile file : model.files()) {
 			matcher = file.name().matcher(p);
@@ -187,6 +187,41 @@ final class Watcher extends Thread {
 					// 例如二码合一时，要按单个码提取时
 					// break;
 				}
+			}
+		}
+	}
+
+	public void match(File file) throws IOException {
+		final Path absolute = file.toPath();
+		if (absolute.startsWith(path)) {
+			// 位于被监视目录中
+			if (file.isDirectory()) {
+				Files.walkFileTree(absolute, new SimpleFileVisitor<>() {
+					// 遍历其中的所有文件
+					@Override
+					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+						final Path relative = file.subpath(path.getNameCount(), file.getNameCount());
+						match(file, relative);
+						return FileVisitResult.CONTINUE;
+					}
+				});
+			} else {
+				final Path relative = absolute.subpath(path.getNameCount(), absolute.getNameCount());
+				match(absolute, relative);
+			}
+		} else {
+			// 位于被监视目录外
+			if (file.isDirectory()) {
+				Files.walkFileTree(absolute, new SimpleFileVisitor<>() {
+					// 遍历其中的所有文件
+					@Override
+					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+						match(file, file);
+						return FileVisitResult.CONTINUE;
+					}
+				});
+			} else {
+				match(absolute, absolute);
 			}
 		}
 	}
