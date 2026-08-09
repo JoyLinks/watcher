@@ -19,7 +19,8 @@ JOYZL Watcher 用于将分布在多个设备或计算机中的文件，自动上
 ### 文件上传
 
 上传文件通过标准的 HTTP POST 请求，以 multipart/form-data 格式上传，
-其中包含 code 参数，值为从文件名中提取的代码， file 为文件内容；
+其中包含 number 参数值为配置的终端编号，
+code 参数值为从文件名中提取的代码， file 为文件字节内容；
 WEB 服务器接收并保存文件后返回 200 OK 即表示成功，
 返回其它任何状态码均表示失败，会稍后重试上传。
 
@@ -36,7 +37,7 @@ watcher.properties 为监视程序配置文件。
 ```
 LOG_EXPIRES=30
 WATCH=D\:\\JOYZL SCADA DEMO\\test
-HTTP_SERVER=http\://127.0.0.1/archive/file
+HTTP_SERVER=http\://192.168.1.100/archive/file
 TITLE=JOYZL Watcher
 MODEL=patterns\\ANY.xml
 UPLOAD_EXPIRES=3600

@@ -247,6 +247,7 @@ final class Window {
 
 		if (Application.uploader() != null) {
 			server.setText(Application.uploader().url());
+			// 已上传文件数
 			upload.setText(Integer.toString(Application.uploader().size()));
 		} else {
 			if (isEmpty(Application.setting().getHTTPServer())) {
@@ -258,6 +259,7 @@ final class Window {
 
 		if (Application.watcher() != null) {
 			watch.setText(Application.watcher().path().toString());
+			// 已提交任务数
 			detect.setText(Integer.toString(Application.watcher().size()));
 		} else {
 			if (isEmpty(Application.setting().getWatch())) {

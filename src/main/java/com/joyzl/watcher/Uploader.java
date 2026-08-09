@@ -72,7 +72,7 @@ final class Uploader implements Runnable {
 	}
 
 	private volatile TaskFile current;
-	/** 上传的文件数量 */
+	/** 已上传文件数 */
 	private volatile int size = 0;
 
 	@Override
@@ -290,6 +290,7 @@ final class Uploader implements Runnable {
 		return url;
 	}
 
+	/** 已上传文件数 */
 	public int size() {
 		return size;
 	}

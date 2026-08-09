@@ -22,6 +22,7 @@ class ModelTest {
 
 	@Test
 	void testCB_CS20T() {
+		// 创博科技 啮合仪
 		Matcher m;
 
 		final Pattern name = Pattern.compile("(?:^|[\\\\/])([\\x20-\\x7E]+)\\.jpg$");
@@ -94,6 +95,7 @@ class ModelTest {
 
 	@Test
 	void testJX_B_F() {
+		// 家馨智能 压装机
 		Matcher m;
 
 		final Pattern name = Pattern.compile("(?:^|[\\\\/])(.+)\\.csv$");
@@ -164,6 +166,7 @@ class ModelTest {
 
 	@Test
 	void testDIR_N_N() {
+		// 重庆智恒 校直机
 		// ([ -~&&[^\\\\/]]+-[ -~&&[^\\\\/]]+)
 
 		final Pattern name = Pattern.compile("([ -~&&[^\\\\/]]+-[ -~&&[^\\\\/]]+)");

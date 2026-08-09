@@ -37,8 +37,8 @@ final class Watcher extends Thread {
 	private final Model model;
 	private final Path path;
 
-	/** 发现并匹配的文件数量 */
-	private volatile int size = 0;
+	/** 发现并匹配的文件数 */
+	private int size = 0;
 
 	public Watcher(Uploader uploader, Model model, Path path) throws IOException {
 		watch = FileSystems.getDefault().newWatchService();
