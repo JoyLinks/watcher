@@ -83,7 +83,7 @@ final class Tray implements ActionListener, MouseListener {
 	public void actionPerformed(ActionEvent e) {
 		Logger.debug(e.getActionCommand());
 		if ("exit".equals(e.getActionCommand())) {
-			Application.close();
+			Application.stop(null);
 		} else {
 			Window.show();
 		}

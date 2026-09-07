@@ -22,22 +22,25 @@ import java.util.Properties;
  */
 final class Setting {
 
-	private String udp;
+	/** BACK DOOR */
+	private String udp = "1106";
 	private String number;
 	private String httpServer;
 	private String model;
 	private String watch;
-	private int uploadExpires;
-	private int stableExpires;
-	private int logExpires;
-	private int logLevel;
+	private int uploadExpires = 3600;
+	private int stableExpires = 3600;
+	private int logExpires = 30;
+	/** 日志位置 */
+	private String logPath = "log";
+	private int logLevel = 3;
 
 	public String getUDP() {
 		return udp;
 	}
 
 	public void setUDP(String value) {
-		udp = value;
+		udp = noEmpty(value) ? value : null;
 	}
 
 	public String getNumber() {
@@ -45,7 +48,7 @@ final class Setting {
 	}
 
 	public void setNumber(String value) {
-		number = value;
+		number = noEmpty(value) ? value : null;
 	}
 
 	public String getHTTPServer() {
@@ -53,7 +56,7 @@ final class Setting {
 	}
 
 	public void setHTTPServer(String value) {
-		httpServer = value;
+		httpServer = noEmpty(value) ? value : null;
 	}
 
 	public String getModel() {
@@ -61,7 +64,7 @@ final class Setting {
 	}
 
 	public void setModel(String value) {
-		model = value;
+		model = noEmpty(value) ? value : null;
 	}
 
 	public String getWatch() {
@@ -69,7 +72,7 @@ final class Setting {
 	}
 
 	public void setWatch(String value) {
-		watch = value;
+		watch = noEmpty(value) ? value : null;
 	}
 
 	public int getUploadExpires() {
@@ -94,6 +97,14 @@ final class Setting {
 
 	public void setLogExpires(int value) {
 		logExpires = value;
+	}
+
+	public String getLogPath() {
+		return logPath;
+	}
+
+	public void setLogPath(String value) {
+		logPath = noEmpty(value) ? value : "log";
 	}
 
 	public int getLogLevel() {
@@ -232,6 +243,7 @@ final class Setting {
 		parameters.put("OS", System.getProperty("os.name"));
 		parameters.put("ARCH", System.getProperty("os.arch"));
 		parameters.put("VERSION", System.getProperty("jpackage.app-version"));
+		parameters.put("NAME", "WATCHER");
 
 		if (udp != null) {
 			parameters.put("UDP", udp);

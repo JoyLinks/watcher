@@ -6,7 +6,7 @@
 
 	<groupId>com.joyzl</groupId>
 	<artifactId>watcher</artifactId>
-	<version>1.1.4</version>
+	<version>1.2.0</version>
 
 	<name>JOYZL Watcher</name>
 	<description>文档自动归集客户端工具软件</description>
@@ -44,8 +44,13 @@
 		</dependency>
 		<dependency>
 			<groupId>com.joyzl</groupId>
+			<artifactId>backdoor</artifactId>
+			<version>1.0.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.joyzl</groupId>
 			<artifactId>logger</artifactId>
-			<version>3.0.5</version>
+			<version>3.1.0</version>
 		</dependency>
 
 		<dependency>
@@ -62,6 +67,11 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.14.0</version>
+				<configuration>
+					<compilerArgs>
+						<arg>--module-version=${project.version}</arg>
+					</compilerArgs>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -69,6 +79,15 @@
 				<version>3.2.2</version>
 				<configuration>
 					<outputDirectory>${outputDirectory}/lib</outputDirectory>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+						<manifestEntries>
+							<Implementation-Version>${project.version}</Implementation-Version>
+						</manifestEntries>
+					</archive>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -113,12 +132,19 @@
 								<resource>
 									<directory>${basedir}</directory>
 									<includes>
-										<include>watcher.properties</include>
 										<include>watcher.ico</include>
 										<include>watcher.png</include>
-										<include>autostart.ps1</include>
-										<include>install.cmd</include>
-										<include>install.sh</include>
+										<include>service.exe</include>
+										<include>watcher.properties</include>
+										<include>install-desktop.ps1</include>
+										<include>install-service.ps1</include>
+										<include>install-desktop.sh</include>
+										<include>install-service.sh</include>
+										<include>uninstall.ps1</include>
+										<include>uninstall.ps1</include>
+										<include>uninstall.sh</include>
+										<include>update.ps1</include>
+										<include>update.sh</include>
 										<include>readme.md</include>
 									</includes>
 								</resource>

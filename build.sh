@@ -8,7 +8,7 @@ echo
 
 mvn -f pom.xml clean package -U
 
-VERSION=1.1.4
+VERSION=1.2.0
 ARCH=$(arch)
 
 # 移除目标目录
@@ -48,8 +48,11 @@ rmdir publish/joyzl-watcher/watcher
 mkdir publish/joyzl-watcher/patterns
 cp publish/watcher/*.xml publish/joyzl-watcher/patterns/
 cp publish/watcher/watcher.properties publish/joyzl-watcher/watcher.properties
+cp publish/watcher/install-desktop.sh publish/joyzl-watcher/install-desktop.sh
+cp publish/watcher/install-service.sh publish/joyzl-watcher/install-service.sh
+cp publish/watcher/uninstall.sh publish/joyzl-watcher/uninstall.sh
+cp publish/watcher/update.sh publish/joyzl-watcher/update.sh
 cp publish/watcher/readme.md publish/joyzl-watcher/readme.md
-cp publish/watcher/install.sh publish/joyzl-watcher/install.sh
 
 # 可执行文件
 chmod +x publish/joyzl-watcher/install.sh
@@ -59,13 +62,13 @@ tar -czf "publish/joyzl-watcher_linux-${ARCH}_${VERSION}.tar.gz" -C publish joyz
 
 
 # 创建安装包
-cd publish
-jpackage \
-	--about-url http://www.joyzl.com\
-	--app-image joyzl-watcher\
-	--install-dir /opt/joyzl/watcher\
-	--resource-dir joyzl-watcher\
-	--linux-shortcut
+# cd publish
+# jpackage \
+#	--about-url http://www.joyzl.com\
+#	--app-image joyzl-watcher\
+#	--install-dir /opt/joyzl/watcher\
+#	--resource-dir joyzl-watcher\
+#	--linux-shortcut
 
 # deb Ubuntu, Debian
 # rpm RHEL, CentOS, Fedora

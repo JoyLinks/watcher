@@ -12,9 +12,14 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.joyzl.backdoor.Backdoor;
+import com.joyzl.backdoor.Parameters;
+import com.joyzl.backdoor.ReceivedCallback;
 import com.joyzl.logger.Logger;
+import com.joyzl.logger.LoggerCleaner;
 import com.joyzl.logger.LoggerService;
 import com.joyzl.network.Executor;
+import com.joyzl.network.chain.UDPSlave;
 
 /**
  * 文件归档客户端
@@ -31,14 +36,19 @@ public class Application {
 	private static Model model;
 
 	public static void main(String[] args) {
+		start(args);
+	}
+
+	public static void start(String[] args) {
 		try {
-			Logger.setFile("log", null, ".log");
 			// 加载配置
 			setting.load();
+
 			// 日志输出级别
-			Logger.setLevel(setting.getLogLevel());
-			// 日志过期天数
+			Logger.setFile(setting.getLogPath(), null, ".log");
 			LoggerService.setExpires(setting.getLogExpires());
+			Logger.setLevel(setting.getLogLevel());
+			Logger.info("START");
 
 			// 防止重复监视启动
 			if (noEmpty(setting.getWatch())) {
@@ -46,7 +56,8 @@ public class Application {
 				if (Files.exists(path)) {
 					if (!Avoidance.register(path)) {
 						Window.error("监视程序已在运行中\n" + path);
-						close();
+						Logger.error("监视程序已在运行中 ", path);
+						stop(args);
 						return;
 					}
 				}
@@ -54,16 +65,40 @@ public class Application {
 
 			Executor.initialize(8);
 			reset();
+
 			Tray.show();
 			Window.show();
+
+			daemon();
 		} catch (Exception e) {
 			Window.error(e.getMessage());
-			Logger.error(e);
+			e.printStackTrace(System.err);
 		}
 	}
 
 	public static void reset() throws IOException {
-		backdoor.reset(setting);
+		if (setting.getUDP() != null) {
+			backdoor.reset(setting.getUDP());
+			backdoor.setOnSetting(new ReceivedCallback<>() {
+				@Override
+				public void received(UDPSlave slave, Parameters parameters) {
+					if (parameters.isEmpty()) {
+						setting.extract(parameters);
+					} else {
+						setting.update(parameters);
+						setting.extract(parameters);
+						try {
+							Application.reset();
+							setting.save();
+						} catch (Exception e) {
+							Logger.error(e);
+						}
+					}
+				}
+			});
+		} else {
+			backdoor.close();
+		}
 
 		if (uploader != null) {
 			uploader.close();
@@ -84,11 +119,13 @@ public class Application {
 			final Path path = Path.of(setting.getModel());
 			if (Files.notExists(path)) {
 				Window.error("匹配模型不存在:" + path);
+				Logger.error("匹配模型不存在:", path);
 			} else {
 				try {
 					model = Model.load(path);
 					if (model == null) {
 						Window.error("匹配模型加载失败");
+						Logger.error("匹配模型加载失败");
 					}
 				} catch (IOException e) {
 					Window.error(e.getMessage());
@@ -110,18 +147,36 @@ public class Application {
 						watcher.start();
 					} catch (AccessDeniedException e) {
 						Window.error("无权访问:" + e.getMessage());
+						Logger.error("无权访问:", e.getMessage());
 					} catch (IOException e) {
 						Window.error(e.getMessage());
+						Logger.error(e);
 					}
 				}
 			} else {
 				Window.error("目录不存在:" + path);
+				Logger.error("目录不存在:", path);
 			}
 		}
 	}
 
-	public static void close() {
-		Logger.info("CLOSE");
+	private static void daemon() {
+		try {
+			while (watcher != null && uploader != null) {
+				if (LoggerService.last(60 * 1000)) {
+					final LoggerCleaner cleaaner = LoggerService.clean();
+					Logger.info(cleaaner);
+				}
+				Thread.sleep(60 * 1000);
+			}
+		} catch (InterruptedException e) {
+		} catch (Exception e) {
+			Logger.error(e);
+		}
+	}
+
+	public static void stop(String[] args) {
+		Logger.info("STOP");
 		try {
 			if (watcher != null) {
 				Avoidance.remove(watcher.path());
@@ -141,19 +196,19 @@ public class Application {
 		}
 	}
 
-	public static Setting setting() {
+	static Setting setting() {
 		return setting;
 	}
 
-	public static Uploader uploader() {
+	static Uploader uploader() {
 		return uploader;
 	}
 
-	public static Watcher watcher() {
+	static Watcher watcher() {
 		return watcher;
 	}
 
-	public static Model model() {
+	static Model model() {
 		return model;
 	}
 }

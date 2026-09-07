@@ -11,6 +11,7 @@ import static com.joyzl.network.Utility.noEmpty;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.datatransfer.DataFlavor;
@@ -53,13 +54,16 @@ final class Window {
 	private static Window instance;
 
 	/** 显示主窗口 */
-	public static void show() {
+	public static boolean show() {
+		if (GraphicsEnvironment.isHeadless()) {
+			return false;
+		}
 		if (instance == null) {
 			try {
 				instance = new Window("JOYZL Watcher");
 			} catch (HeadlessException e) {
 				// 没有桌面环境
-				return;
+				return false;
 			}
 		}
 		if (instance != null) {
@@ -70,7 +74,9 @@ final class Window {
 					instance.refreshFrame();
 				}
 			});
+			return true;
 		}
+		return false;
 	}
 
 	/** 刷新主窗口 */
@@ -405,6 +411,9 @@ final class Window {
 	}
 
 	public static void error(String text) {
+		if (GraphicsEnvironment.isHeadless()) {
+			return;
+		}
 		try {
 			JOptionPane.showMessageDialog(null, text, "错误", JOptionPane.INFORMATION_MESSAGE);
 		} catch (HeadlessException e) {

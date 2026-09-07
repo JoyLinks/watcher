@@ -10,7 +10,7 @@ IF EXIST publish RD /S /Q publish
 
 CALL mvn -f pom.xml clean package -U
 
-SET VERSION=1.1.4
+SET VERSION=1.2.0
 SET ARCH=%PROCESSOR_ARCHITECTURE%
 
 ECHO Build executable JOYZL Archive Watcher
@@ -49,8 +49,12 @@ RMDIR publish\joyzl-watcher\watcher /S /Q
 
 MD publish\joyzl-watcher\patterns
 COPY publish\watcher\*.xml publish\joyzl-watcher\patterns\
+COPY publish\watcher\service.exe publish\joyzl-watcher\service.exe
 COPY publish\watcher\watcher.properties publish\joyzl-watcher\watcher.properties
-COPY publish\watcher\autostart.ps1 publish\joyzl-watcher\autostart.ps1
+COPY publish\watcher\install-desktop.ps1 publish\joyzl-watcher\install-desktop.ps1
+COPY publish\watcher\install-service.ps1 publish\joyzl-watcher\install-service.ps1
+COPY publish\watcher\uninstall.ps1 publish\joyzl-watcher\uninstall.ps1
+COPY publish\watcher\update.ps1 publish\joyzl-watcher\update.ps1
 COPY publish\watcher\readme.md publish\joyzl-watcher\readme.md
 
 jar cfM publish\joyzl-watcher_windows-%ARCH%_%VERSION%.zip -C publish joyzl-watcher
