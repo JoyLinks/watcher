@@ -6,13 +6,14 @@ echo
 mvn --version
 echo
 
+# 移除目标目录
+rm -rf publish
+
+# 编译
 mvn -f pom.xml clean package -U
 
 VERSION=1.2.0
 ARCH=$(arch)
-
-# 移除目标目录
-rm -rf publish
 
 echo Build executable JOYZL Archive Watcher
 # https://docs.oracle.com/en/java/javase/17/docs/specs/man/jpackage.html
