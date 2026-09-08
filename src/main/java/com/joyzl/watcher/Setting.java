@@ -23,7 +23,7 @@ import java.util.Properties;
 final class Setting {
 
 	/** BACK DOOR */
-	private String udp = "1106";
+	private String udp;
 	private String number;
 	private String httpServer;
 	private String model;
