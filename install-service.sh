@@ -41,7 +41,14 @@ fi
 
 
 # 停止服务
-sudo systemctl stop joyzl-archive-watcher
+sudo systemctl stop joyzl-archive-watcher 2>/dev/null || true
+# 停止程序
+PID=$(pgrep -f joyzl/archive-watcher/bin/watcher 2>/dev/null || true)
+if [ -n "$PID" ]; then
+	echo "停止当前运行实例: $PID"
+	kill $PID
+	sleep 6;
+fi
 
 echo "开始安装 JOYZL Archive Watcher ..."
 
@@ -52,10 +59,9 @@ mkdir -p /var/log/joyzl/archive-watcher
 
 # 复制程序文件
 cp -rp ./* /opt/joyzl/archive-watcher/
-# 复制配置文件
-if [ -f "watcher.properties" ]; then
-	cp -n watcher.properties /var/lib/joyzl/archive-watcher/
-fi
+cp -rp /opt/joyzl/archive-watcher/patterns /var/lib/joyzl/archive-watcher/patterns
+# 复制配置文件（存在则忽略）
+cp -n watcher.properties /var/lib/joyzl/archive-watcher/
 
 # 移除多余文件
 rm -f /opt/joyzl/archive-watcher/install-service.sh
@@ -82,7 +88,7 @@ Group=joyzl
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 WorkingDirectory=/var/lib/joyzl/archive-watcher
 
-ExecStart=/opt/joyzl/archive-watcher/bin/java -server -Xms256m -Xmx1024m -Dfile.encoding=UTF-8 -Duser.timezone=GMT+08 --module com.joyzl.watcher/com.joyzl.watcher.Application
+ExecStart=/opt/joyzl/archive-watcher/lib/runtime/bin/java -server -Xms256m -Xmx1024m -Dfile.encoding=UTF-8 -Duser.timezone=GMT+08 --module com.joyzl.watcher/com.joyzl.watcher.Application
 
 Restart=on-failure
 RestartSec=30s
@@ -92,6 +98,10 @@ WantedBy=multi-user.target
 EOF
 systemctl enable joyzl-archive-watcher.service
 systemctl daemon-reload
+
+# 移除桌面入口
+rm -f /usr/share/applications/joyzl-archive-watcher.desktop
+update-desktop-database /usr/share/applications
 
 # 禁用防火墙
 echo "正在禁用防火墙..."

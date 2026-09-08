@@ -63,6 +63,13 @@ public class Application {
 				}
 			}
 
+			Runtime.getRuntime().addShutdownHook(new Thread("SHUTDOWN") {
+				@Override
+				public void run() {
+					Application.stop(null);
+				}
+			});
+
 			Executor.initialize(8);
 			reset();
 

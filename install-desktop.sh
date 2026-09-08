@@ -40,6 +40,8 @@ if id "$ORIGINAL_USER" &>/dev/null; then
 fi
 
 
+# 停止服务
+sudo systemctl stop joyzl-archive-watcher 2>/dev/null || true
 # 停止程序
 PID=$(pgrep -f joyzl/archive-watcher/bin/watcher 2>/dev/null || true)
 if [ -n "$PID" ]; then
@@ -57,10 +59,9 @@ mkdir -p /var/log/joyzl/archive-watcher
 
 # 复制程序文件
 cp -rp ./* /opt/joyzl/archive-watcher/
-# 复制配置文件
-if [ -f "watcher.properties" ]; then
-	cp -n watcher.properties /var/lib/joyzl/archive-watcher/
-fi
+cp -rp /opt/joyzl/archive-watcher/patterns /var/lib/joyzl/archive-watcher/patterns
+# 复制配置文件（存在则忽略）
+cp -n watcher.properties /var/lib/joyzl/archive-watcher/
 
 # 移除多余文件
 rm -f /opt/joyzl/archive-watcher/install-desktop.sh
@@ -71,7 +72,7 @@ chown -R root:root /opt/joyzl/archive-watcher
 chmod -R 755 /opt/joyzl/archive-watcher
 chown -R joyzl:joyzl /var/lib/joyzl/archive-watcher
 chmod -R 775 /var/lib/joyzl/archive-watcher
-chown -R joyzl:joyzl /var/log/archive-watcher
+chown -R joyzl:joyzl /var/log/joyzl/archive-watcher
 chmod -R 775 /var/log/joyzl/archive-watcher
 
 # 创建桌面入口文件
@@ -90,10 +91,13 @@ Categories="Utility;Development;"
 Keywords=archive;watcher;industrial;automation
 StartupWMClass=joyzl-archive-watcher
 EOF
-
 chmod 644 "/usr/share/applications/joyzl-archive-watcher.desktop"
-
 # 更新桌面数据库
-update-desktop-database /usr/share/applications 2>/dev/null || true
+update-desktop-database /usr/share/applications || true
+
+# 移除服务配置
+systemctl disable joyzl-archive-watcher.service 2>/dev/null || true
+rm -f /etc/systemd/system/joyzl-archive-watcher.service
+systemctl daemon-reload
 
 echo "安装完成"

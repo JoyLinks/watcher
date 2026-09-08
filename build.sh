@@ -56,7 +56,9 @@ cp publish/watcher/update.sh publish/joyzl-watcher/update.sh
 cp publish/watcher/readme.md publish/joyzl-watcher/readme.md
 
 # 可执行文件
-chmod +x publish/joyzl-watcher/install.sh
+chmod +x publish/joyzl-watcher/install-desktop.sh
+chmod +x publish/joyzl-watcher/install-service.sh
+chmod +x publish/joyzl-watcher/uninstall.sh
 
 # 创建压缩包
 tar -czf "publish/joyzl-watcher_linux-${ARCH}_${VERSION}.tar.gz" -C publish joyzl-watcher
