@@ -16,8 +16,6 @@ SET ARCH=%PROCESSOR_ARCHITECTURE%
 ECHO Build executable JOYZL Archive Watcher
 REM https://docs.oracle.com/en/java/javase/17/docs/specs/man/jpackage.html
 
-IF EXIST publish\joyzl-watcher RD /S /Q publish\joyzl-watcher
-
 REM 构建运行镜像
 jpackage ^
 	--name watcher^
@@ -27,7 +25,7 @@ jpackage ^
 	--copyright www.joyzl.com^
 	--description "JOYZL Archive Watcher"^
 	--icon publish\watcher\watcher.ico^
-	--dest publish\joyzl-watcher^
+	--dest publish\joyzl-archive-watcher^
 	--module-path publish\watcher\lib^
 	--module com.joyzl.watcher/com.joyzl.watcher.Application^
 	--add-modules jdk.charsets^
@@ -43,20 +41,20 @@ jpackage ^
 	--java-options -Duser.timezone=GMT+08^
 	--verbose
 
-REM watcher -> joyzl-watcher
-XCOPY publish\joyzl-watcher\watcher publish\joyzl-watcher /E /Q
-RMDIR publish\joyzl-watcher\watcher /S /Q
+REM publish\joyzl-archive-watcher\watcher -> publish\joyzl-archive-watcher
+XCOPY publish\joyzl-archive-watcher\watcher publish\joyzl-archive-watcher /E /Q
+RMDIR publish\joyzl-archive-watcher\watcher /S /Q
 
-MD publish\joyzl-watcher\patterns
-COPY publish\watcher\*.xml publish\joyzl-watcher\patterns\
-COPY publish\watcher\service.exe publish\joyzl-watcher\service.exe
-COPY publish\watcher\watcher.properties publish\joyzl-watcher\watcher.properties
-COPY publish\watcher\install-desktop.ps1 publish\joyzl-watcher\install-desktop.ps1
-COPY publish\watcher\install-service.ps1 publish\joyzl-watcher\install-service.ps1
-COPY publish\watcher\uninstall.ps1 publish\joyzl-watcher\uninstall.ps1
-COPY publish\watcher\update.ps1 publish\joyzl-watcher\update.ps1
-COPY publish\watcher\readme.md publish\joyzl-watcher\readme.md
+MD publish\joyzl-archive-watcher\patterns
+COPY publish\watcher\*.xml publish\joyzl-archive-watcher\patterns\
+COPY publish\watcher\service.exe publish\joyzl-archive-watcher\service.exe
+COPY publish\watcher\watcher.properties publish\joyzl-archive-watcher\watcher.properties
+COPY publish\watcher\install-desktop.ps1 publish\joyzl-archive-watcher\install-desktop.ps1
+COPY publish\watcher\install-service.ps1 publish\joyzl-archive-watcher\install-service.ps1
+COPY publish\watcher\uninstall.ps1 publish\joyzl-archive-watcher\uninstall.ps1
+COPY publish\watcher\update.ps1 publish\joyzl-archive-watcher\update.ps1
+COPY publish\watcher\readme.md publish\joyzl-archive-watcher\readme.md
 
-jar cfM publish\joyzl-watcher_windows-%ARCH%_%VERSION%.zip -C publish joyzl-watcher
+jar cfM publish\joyzl-archive-watcher_windows-%ARCH%_%VERSION%.zip -C publish joyzl-archive-watcher
 
 PAUSE

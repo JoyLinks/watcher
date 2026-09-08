@@ -26,7 +26,7 @@ jpackage \
 	--copyright www.joyzl.com\
 	--description "JOYZL Archive Watcher"\
 	--icon publish/watcher/watcher.png\
-	--dest publish/joyzl-watcher\
+	--dest publish/joyzl-archive-watcher\
 	--module-path publish/watcher/lib\
 	--module com.joyzl.watcher/com.joyzl.watcher.Application\
 	--add-modules jdk.charsets\
@@ -42,26 +42,26 @@ jpackage \
 	--java-options -Duser.timezone=GMT+08\
 	--verbose
 
-# watcher -> joyzl-watcher
-mv publish/joyzl-watcher/watcher/* publish/joyzl-watcher/
-rmdir publish/joyzl-watcher/watcher
+# publish/joyzl-archive-watcher/watcher -> publish/joyzl-archive-watcher
+mv publish/joyzl-archive-watcher/watcher/* publish/joyzl-archive-watcher/
+rmdir publish/joyzl-archive-watcher/watcher
 
-mkdir publish/joyzl-watcher/patterns
-cp publish/watcher/*.xml publish/joyzl-watcher/patterns/
-cp publish/watcher/watcher.properties publish/joyzl-watcher/watcher.properties
-cp publish/watcher/install-desktop.sh publish/joyzl-watcher/install-desktop.sh
-cp publish/watcher/install-service.sh publish/joyzl-watcher/install-service.sh
-cp publish/watcher/uninstall.sh publish/joyzl-watcher/uninstall.sh
-cp publish/watcher/update.sh publish/joyzl-watcher/update.sh
-cp publish/watcher/readme.md publish/joyzl-watcher/readme.md
+mkdir publish/joyzl-archive-watcher/patterns
+cp publish/watcher/*.xml publish/joyzl-archive-watcher/patterns/
+cp publish/watcher/watcher.properties publish/joyzl-archive-watcher/watcher.properties
+cp publish/watcher/install-desktop.sh publish/joyzl-archive-watcher/install-desktop.sh
+cp publish/watcher/install-service.sh publish/joyzl-archive-watcher/install-service.sh
+cp publish/watcher/uninstall.sh publish/joyzl-archive-watcher/uninstall.sh
+cp publish/watcher/update.sh publish/joyzl-archive-watcher/update.sh
+cp publish/watcher/readme.md publish/joyzl-archive-watcher/readme.md
 
 # 可执行文件
-chmod +x publish/joyzl-watcher/install-desktop.sh
-chmod +x publish/joyzl-watcher/install-service.sh
-chmod +x publish/joyzl-watcher/uninstall.sh
+chmod +x publish/joyzl-archive-watcher/install-desktop.sh
+chmod +x publish/joyzl-archive-watcher/install-service.sh
+chmod +x publish/joyzl-archive-watcher/uninstall.sh
 
 # 创建压缩包
-tar -czf "publish/joyzl-watcher_linux-${ARCH}_${VERSION}.tar.gz" -C publish joyzl-watcher
+tar -czf "publish/joyzl-archive-watcher_linux-${ARCH}_${VERSION}.tar.gz" -C publish joyzl-archive-watcher
 
 
 # 创建安装包
