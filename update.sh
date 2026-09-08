@@ -13,6 +13,19 @@ if ! sudo -n true 2>/dev/null; then
     fi
 fi
 
+# 服务更新必须脱离服务进程(Systemd)
+# 否则 systemctl stop joyzl-archive-watcher 执行后，关联进程全部终止（包括当前脚本）
+if grep -q "joyzl-archive-watcher" /proc/self/cgroup 2>/dev/null; then
+	ORIGINAL_WORKDIR=$(pwd)
+	SCRIPT_ABS=$(realpath "$0")
+    sudo systemd-run --slice=system.slice \
+        --unit=update-$(date +%s) \
+        --working-directory="$ORIGINAL_WORKDIR" \
+        bash "$SCRIPT_ABS"
+    exit 0
+fi
+exec >> script.log 2>&1
+
 echo "停止当前实例"
 sudo systemctl stop joyzl-archive-watcher 2>/dev/null || true
 sudo pkill -f "/opt/joyzl/archive-watcher/bin/watcher" 2>/dev/null || true
@@ -44,9 +57,10 @@ sudo chmod -R 755 /var/lib/joyzl/archive-watcher
 
 # 启动程序
 if [ -f "/usr/share/applications/joyzl-archive-watcher.desktop" ]; then
-	xdg-open /usr/share/applications/joyzl-archive-watcher.desktop
+	echo "启动程序"
+	sudo -u $USER -i sh -c "cd /var/lib/joyzl/archive-watcher && DISPLAY=:0 /opt/joyzl/archive-watcher/bin/watcher &"
 else
-	echo 启动服务
+	echo "启动服务"
 	sudo systemctl start joyzl-archive-watcher
 fi
 
