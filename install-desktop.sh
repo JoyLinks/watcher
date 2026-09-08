@@ -58,8 +58,8 @@ mkdir -p /var/lib/joyzl/archive-watcher
 mkdir -p /var/log/joyzl/archive-watcher
 
 # 复制程序文件
-cp -rp ./* /opt/joyzl/archive-watcher/
-cp -rp /opt/joyzl/archive-watcher/patterns /var/lib/joyzl/archive-watcher/patterns
+cp -rp ./. /opt/joyzl/archive-watcher/
+cp -rp ./patterns/. /var/lib/joyzl/archive-watcher/patterns
 # 复制配置文件（存在则忽略）
 cp -n watcher.properties /var/lib/joyzl/archive-watcher/
 
@@ -96,8 +96,10 @@ chmod 644 "/usr/share/applications/joyzl-archive-watcher.desktop"
 update-desktop-database /usr/share/applications || true
 
 # 移除服务配置
-systemctl disable joyzl-archive-watcher.service 2>/dev/null || true
-rm -f /etc/systemd/system/joyzl-archive-watcher.service
-systemctl daemon-reload
+if [ -f "/etc/systemd/system/joyzl-archive-watcher.service" ]; then
+	systemctl disable joyzl-archive-watcher.service 2>/dev/null || true
+	rm -f /etc/systemd/system/joyzl-archive-watcher.service
+	systemctl daemon-reload
+fi
 
 echo "安装完成"

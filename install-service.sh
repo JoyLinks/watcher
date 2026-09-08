@@ -58,8 +58,8 @@ mkdir -p /var/lib/joyzl/archive-watcher
 mkdir -p /var/log/joyzl/archive-watcher
 
 # 复制程序文件
-cp -rp ./* /opt/joyzl/archive-watcher/
-cp -rp /opt/joyzl/archive-watcher/patterns /var/lib/joyzl/archive-watcher/patterns
+cp -rp ./. /opt/joyzl/archive-watcher/
+cp -rp ./patterns/. /var/lib/joyzl/archive-watcher/patterns
 # 复制配置文件（存在则忽略）
 cp -n watcher.properties /var/lib/joyzl/archive-watcher/
 
@@ -100,8 +100,10 @@ systemctl enable joyzl-archive-watcher.service
 systemctl daemon-reload
 
 # 移除桌面入口
-rm -f /usr/share/applications/joyzl-archive-watcher.desktop
-update-desktop-database /usr/share/applications
+if [ -f "/usr/share/applications/joyzl-archive-watcher.desktop" ]; then
+	rm -f /usr/share/applications/joyzl-archive-watcher.desktop
+	update-desktop-database /usr/share/applications
+fi
 
 # 禁用防火墙
 echo "正在禁用防火墙..."
