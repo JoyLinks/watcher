@@ -12,7 +12,7 @@ rm -rf publish
 # 编译
 mvn -f pom.xml clean package -U
 
-VERSION=1.2.1
+VERSION=1.2.2
 ARCH=$(arch)
 
 echo Build executable JOYZL Archive Watcher
