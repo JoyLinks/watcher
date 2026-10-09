@@ -64,6 +64,10 @@ public class Application {
 				}
 			}
 
+			// 初始化线程池
+			Executor.initialize(setting.getThread());
+			Logger.info("THREAD SIZE: " + Executor.getThreadSize());
+
 			Runtime.getRuntime().addShutdownHook(new Thread("SHUTDOWN") {
 				@Override
 				public void run() {
@@ -71,12 +75,9 @@ public class Application {
 				}
 			});
 
-			Executor.initialize(8);
 			reset();
-
 			Tray.show();
 			Window.show();
-
 			daemon();
 		} catch (Exception e) {
 			Window.error(e.getMessage());

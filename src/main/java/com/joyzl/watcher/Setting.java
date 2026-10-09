@@ -11,7 +11,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.module.ModuleDescriptor.Version;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -22,6 +24,7 @@ import java.util.Properties;
  */
 final class Setting {
 
+	private int thread = 8;
 	/** BACK DOOR */
 	private String udp;
 	private String number;
@@ -34,6 +37,14 @@ final class Setting {
 	/** 日志位置 */
 	private String logPath = "log";
 	private int logLevel = 3;
+
+	public int getThread() {
+		return thread;
+	}
+
+	public void setThread(int value) {
+		thread = value;
+	}
 
 	public String getUDP() {
 		return udp;
@@ -123,10 +134,11 @@ final class Setting {
 				properties.load(input);
 
 				udp = properties.getProperty("UDP");
-				number = properties.getProperty("NUMBER");
-				httpServer = properties.getProperty("HTTP_SERVER");
 				model = properties.getProperty("MODEL");
 				watch = properties.getProperty("WATCH");
+				number = properties.getProperty("NUMBER");
+				httpServer = properties.getProperty("HTTP_SERVER");
+				logPath = properties.getProperty("LOG_PATH");
 
 				String temp = properties.getProperty("UPLOAD_EXPIRES");
 				if (noEmpty(temp)) {
@@ -160,6 +172,14 @@ final class Setting {
 						logLevel = 1;
 					}
 				}
+				temp = properties.getProperty("THREAD");
+				if (noEmpty(temp)) {
+					try {
+						thread = Integer.parseUnsignedInt(temp);
+					} catch (Exception e) {
+						thread = 0;
+					}
+				}
 			}
 		}
 	}
@@ -168,17 +188,20 @@ final class Setting {
 		if (parameters.containsKey("UDP")) {
 			udp = parameters.get("UDP");
 		}
+		if (parameters.containsKey("MODEL")) {
+			model = parameters.get("MODEL");
+		}
+		if (parameters.containsKey("WATCH")) {
+			watch = parameters.get("WATCH");
+		}
 		if (parameters.containsKey("NUMBER")) {
 			number = parameters.get("NUMBER");
 		}
 		if (parameters.containsKey("HTTP_SERVER")) {
 			httpServer = parameters.get("HTTP_SERVER");
 		}
-		if (parameters.containsKey("MODEL")) {
-			model = parameters.get("MODEL");
-		}
-		if (parameters.containsKey("WATCH")) {
-			watch = parameters.get("WATCH");
+		if (parameters.containsKey("LOG_PATH")) {
+			logPath = parameters.get("LOG_PATH");
 		}
 		if (parameters.containsKey("UPLOAD_EXPIRES")) {
 			try {
@@ -208,6 +231,13 @@ final class Setting {
 				logLevel = 1;
 			}
 		}
+		if (parameters.containsKey("THREAD")) {
+			try {
+				thread = Integer.parseUnsignedInt(parameters.get("THREAD"));
+			} catch (Exception e) {
+				thread = 0;
+			}
+		}
 	}
 
 	public void save() throws IOException {
@@ -216,23 +246,27 @@ final class Setting {
 		if (udp != null) {
 			properties.setProperty("UDP", udp);
 		}
-		if (number != null) {
-			properties.setProperty("NUMBER", number);
-		}
-		if (httpServer != null) {
-			properties.setProperty("HTTP_SERVER", httpServer);
-		}
 		if (model != null) {
 			properties.setProperty("MODEL", model);
 		}
 		if (watch != null) {
 			properties.setProperty("WATCH", watch);
 		}
+		if (number != null) {
+			properties.setProperty("NUMBER", number);
+		}
+		if (httpServer != null) {
+			properties.setProperty("HTTP_SERVER", httpServer);
+		}
+		if (logPath != null) {
+			properties.setProperty("LOG_PATH", logPath);
+		}
 
 		properties.setProperty("UPLOAD_EXPIRES", Integer.toString(uploadExpires));
 		properties.setProperty("STABLE_EXPIRES", Integer.toString(stableExpires));
 		properties.setProperty("LOG_EXPIRES", Integer.toString(logExpires));
 		properties.setProperty("LOG_LEVEL", Integer.toString(logLevel));
+		properties.setProperty("THREAD", Integer.toString(thread));
 
 		try (FileOutputStream output = new FileOutputStream(setting)) {
 			properties.store(output, "JOYZL Watcher");
@@ -242,17 +276,11 @@ final class Setting {
 	public void extract(Map<String, String> parameters) {
 		parameters.put("OS", System.getProperty("os.name"));
 		parameters.put("ARCH", System.getProperty("os.arch"));
-		parameters.put("VERSION", System.getProperty("jpackage.app-version"));
+		parameters.put("VERSION", version());
 		parameters.put("NAME", "WATCHER");
 
 		if (udp != null) {
 			parameters.put("UDP", udp);
-		}
-		if (number != null) {
-			parameters.put("NUMBER", number);
-		}
-		if (httpServer != null) {
-			parameters.put("HTTP_SERVER", httpServer);
 		}
 		if (model != null) {
 			parameters.put("MODEL", model);
@@ -260,10 +288,31 @@ final class Setting {
 		if (watch != null) {
 			parameters.put("WATCH", watch);
 		}
+		if (number != null) {
+			parameters.put("NUMBER", number);
+		}
+		if (httpServer != null) {
+			parameters.put("HTTP_SERVER", httpServer);
+		}
+		if (logPath != null) {
+			parameters.put("LOG_PATH", logPath);
+		}
 
 		parameters.put("UPLOAD_EXPIRES", Integer.toString(uploadExpires));
 		parameters.put("STABLE_EXPIRES", Integer.toString(stableExpires));
 		parameters.put("LOG_EXPIRES", Integer.toString(logExpires));
 		parameters.put("LOG_LEVEL", Integer.toString(logLevel));
+		parameters.put("THREAD", Integer.toString(thread));
+	}
+
+	public String version() {
+		final Optional<Version> optional = Watcher.class.getModule().getDescriptor().version();
+		if (optional.isEmpty()) {
+			final String version = Watcher.class.getPackage().getImplementationVersion();
+			if (version == null) {
+				return System.getProperty("jpackage.app-version");
+			}
+		}
+		return optional.get().toString();
 	}
 }
