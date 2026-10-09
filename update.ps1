@@ -16,37 +16,36 @@ if (-not $IsAdmin) {
     exit 1
 }
 
-Write-Host "停止运行实例"
-$ServiceName = "JOYZL-Archive-Watcher"
-$Service = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
-if($Service){
-    Stop-Service -Name $ServiceName -Force -ErrorAction SilentlyContinue
-    Write-Host "已停止服务"
-}
-$Proc = Get-Process -Name "watcher" -ErrorAction SilentlyContinue
-if ($Proc) {
-    Stop-Process -Name "watcher" -Force -ErrorAction SilentlyContinue
-    Write-Host "已停止运行实例"
-}
-
-Write-Host "开始更新 JOYZL Archive Watcher"
+Write-Output "更新 JOYZL Archive Watcher"
 $ProgramFiles = if ($env:ProgramW6432) { $env:ProgramW6432 } else { $env:ProgramFiles }
 $InstallDir = Join-Path $ProgramFiles "joyzl\archive-watcher"
 $DataDir = Join-Path $env:ProgramData "joyzl\archive-watcher"
 $SourceDir = ".\stpfiles\joyzl-archive-watcher"
 
-Write-Host "更新程序文件"
+Write-Output "停止运行实例"
+$Service = Get-Service -Name "JOYZL-Archive-Watcher" -ErrorAction SilentlyContinue
+if($Service){
+    Stop-Service -Name "JOYZL-Archive-Watcher" -Force -ErrorAction SilentlyContinue
+    Write-Output "服务已停止"
+}
+$Proc = Get-Process -Name "watcher" -ErrorAction SilentlyContinue
+if ($Proc) {
+    Stop-Process -Name "watcher" -Force -ErrorAction SilentlyContinue
+    Write-Output "运行实例已停止"
+}
+
+Write-Output "更新程序文件"
 robocopy $SourceDir $InstallDir /E /COPY:DAT /R:3 /W:10 /NP /NFL /NDL
 robocopy $(Join-Path $InstallDir "patterns") $(Join-Path $DataDir "patterns") /E
 
-Write-Host "重新启动程序"
+Write-Output "重新启动程序"
 if ($Service) {
     try {
         $Service.Start();
         $Service.WaitForStatus('Running', '00:00:12')
-        Write-Host "服务已启动"
+        Write-Output "服务已启动"
     } catch {
-        Write-Host "启动服务失败: $_"
+        Write-Output "启动服务失败: $_"
     }
 } else {
     $wshShell = New-Object -ComObject WScript.Shell
@@ -59,5 +58,5 @@ if ($Service) {
     }
 }
 
-Write-Host "更新完成"
+Write-Output "更新完成"
 exit 0
