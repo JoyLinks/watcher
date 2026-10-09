@@ -132,20 +132,26 @@
 								<resource>
 									<directory>${basedir}</directory>
 									<includes>
-										<include>watcher.ico</include>
-										<include>watcher.png</include>
-										<include>service.exe</include>
 										<include>watcher.properties</include>
+										<include>readme.md</include>
+
+										<include>watcher.ico</include>
+										<include>service_windows-AMD64.exe</include>
+										<include>service_windows-ARM64.exe</include>
+										<include>service_windows-x86.exe</include>
 										<include>install-desktop.ps1</include>
+										<include>install-desktop.cmd</include>
 										<include>install-service.ps1</include>
+										<include>install-service.cmd</include>
+										<include>uninstall.ps1</include>
+										<include>uninstall.cmd</include>
+										<include>update.ps1</include>
+
+										<include>watcher.png</include>
 										<include>install-desktop.sh</include>
 										<include>install-service.sh</include>
-										<include>uninstall.ps1</include>
-										<include>uninstall.ps1</include>
 										<include>uninstall.sh</include>
-										<include>update.ps1</include>
 										<include>update.sh</include>
-										<include>readme.md</include>
 									</includes>
 								</resource>
 							</resources>

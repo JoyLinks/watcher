@@ -1,55 +1,56 @@
-<#
+ï»¿<#
 .SYNOPSIS
-    ¸üĞÂ½Å±¾£ºJOYZL Archive Watcher
+    æ›´æ–°è„šæœ¬ï¼šJOYZL Archive Watcher
 .DESCRIPTION
-    µ±Ç°Ä¿Â¼£º%ProgramData%\joyzl\archive-watcher£¬
-    ¸üĞÂÎÄ¼ş£º%ProgramData%\joyzl\archive-watcher\stpfiles\joyzl-archive-watcher£¬
-    ³ÌĞòÎ»ÖÃ£º%ProgramFiles%\joyzl\archive-watcher£¬
-    Ê¹ÓÃ·½·¨£ºËæ³ÌĞò¸üĞÂÑ¹Ëõ°üÒ»²¢ÍÆËÍµ½¿Í»§¶Ë£¬Ô¶³ÌÖ´ĞĞ½Å±¾£¬
-    ×Ô¶¯ÌáÉı¹ÜÀíÔ±È¨ÏŞÖ´ĞĞ¡£
+    å½“å‰ç›®å½•ï¼š%ProgramData%\joyzl\archive-watcherï¼Œ
+    æ›´æ–°æ–‡ä»¶ï¼š%ProgramData%\joyzl\archive-watcher\stpfiles\joyzl-archive-watcherï¼Œ
+    ç¨‹åºä½ç½®ï¼š%ProgramFiles%\joyzl\archive-watcherï¼Œ
+    ä½¿ç”¨æ–¹æ³•ï¼šéšç¨‹åºæ›´æ–°å‹ç¼©åŒ…ä¸€å¹¶æ¨é€åˆ°å®¢æˆ·ç«¯ï¼Œè¿œç¨‹æ‰§è¡Œè„šæœ¬ï¼Œ
+    è‡ªåŠ¨æå‡ç®¡ç†å‘˜æƒé™æ‰§è¡Œã€‚
 #>
 
-# ¼ì²é¹ÜÀíÔ±È¨ÏŞ
+# æ£€æŸ¥ç®¡ç†å‘˜æƒé™
 $IsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $IsAdmin) {
-    Write-Error "Î´ÄÜ»ñÈ¡¹ÜÀíÔ±È¨ÏŞ£¬ÎŞ·¨Ö´ĞĞ¸üĞÂ¡£"
+    Write-Error "æœªèƒ½è·å–ç®¡ç†å‘˜æƒé™ï¼Œæ— æ³•æ‰§è¡Œæ›´æ–°ã€‚"
     exit 1
 }
 
-Write-Host "Í£Ö¹ÔËĞĞÊµÀı"
+Write-Host "åœæ­¢è¿è¡Œå®ä¾‹"
 $ServiceName = "JOYZL-Archive-Watcher"
 $Service = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
 if($Service){
     Stop-Service -Name $ServiceName -Force -ErrorAction SilentlyContinue
-    Write-Host "ÒÑÍ£Ö¹·şÎñ"
+    Write-Host "å·²åœæ­¢æœåŠ¡"
 }
 $Proc = Get-Process -Name "watcher" -ErrorAction SilentlyContinue
 if ($Proc) {
     Stop-Process -Name "watcher" -Force -ErrorAction SilentlyContinue
-    Write-Host "ÒÑÍ£Ö¹ÔËĞĞÊµÀı"
+    Write-Host "å·²åœæ­¢è¿è¡Œå®ä¾‹"
 }
 
-Write-Host "¿ªÊ¼¸üĞÂ JOYZL Archive Watcher"
+Write-Host "å¼€å§‹æ›´æ–° JOYZL Archive Watcher"
 $ProgramFiles = if ($env:ProgramW6432) { $env:ProgramW6432 } else { $env:ProgramFiles }
 $InstallDir = Join-Path $ProgramFiles "joyzl\archive-watcher"
 $DataDir = Join-Path $env:ProgramData "joyzl\archive-watcher"
 $SourceDir = ".\stpfiles\joyzl-archive-watcher"
 
-Write-Host "¸üĞÂ³ÌĞòÎÄ¼ş"
+Write-Host "æ›´æ–°ç¨‹åºæ–‡ä»¶"
 robocopy $SourceDir $InstallDir /E /COPY:DAT /R:3 /W:10 /NP /NFL /NDL
 robocopy $(Join-Path $InstallDir "patterns") $(Join-Path $DataDir "patterns") /E
 
-Write-Host "ÖØĞÂÆô¶¯³ÌĞò"
+Write-Host "é‡æ–°å¯åŠ¨ç¨‹åº"
 if ($Service) {
     try {
         $Service.Start();
         $Service.WaitForStatus('Running', '00:00:12')
-        Write-Host "·şÎñÒÑÆô¶¯"
+        Write-Host "æœåŠ¡å·²å¯åŠ¨"
     } catch {
-        Write-Host "Æô¶¯·şÎñÊ§°Ü: $_"
+        Write-Host "å¯åŠ¨æœåŠ¡å¤±è´¥: $_"
     }
 } else {
-    $StartupFolder = [Environment]::GetFolderPath("CommonStartup")
+    $wshShell = New-Object -ComObject WScript.Shell
+    $StartupFolder = $wshShell.SpecialFolders.Item("AllUsersStartup")
     $ShortcutPath = Join-Path $StartupFolder "JOYZL Archive Watcher.lnk"
     if (Test-Path $ShortcutPath) {
         Start-Process -FilePath $ShortcutPath
@@ -58,5 +59,5 @@ if ($Service) {
     }
 }
 
-Write-Host "¸üĞÂÍê³É"
+Write-Host "æ›´æ–°å®Œæˆ"
 exit 0

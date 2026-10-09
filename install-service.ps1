@@ -1,84 +1,83 @@
-<#
+ï»¿<#
 .SYNOPSIS
-    °²×° JOYZL Archive Watcher Îª Windows ·şÎñ
+    å®‰è£… JOYZL Archive Watcher ä¸º Windows æœåŠ¡
 .DESCRIPTION
-    °²×°³ÌĞòµ½£º%ProgramFiles%\joyzl\archive-watcher£¬
-    Êı¾İÎ»ÖÃÎª£º%ProgramData%\joyzl\archive-watcher£¬
-    ×¢²áÎª Windows ·şÎñ£¬
-    ĞèÒª¹ÜÀíÔ±È¨ÏŞÖ´ĞĞ¡£
+    å®‰è£…ç¨‹åºåˆ°ï¼š%ProgramFiles%\joyzl\archive-watcherï¼Œ
+    æ•°æ®ä½ç½®ä¸ºï¼š%ProgramData%\joyzl\archive-watcherï¼Œ
+    æ³¨å†Œä¸º Windows æœåŠ¡ï¼Œ
+    éœ€è¦ç®¡ç†å‘˜æƒé™æ‰§è¡Œã€‚
 #>
 
-# ÇëÇó¹ÜÀíÔ±È¨ÏŞ
+# PowerShell 2.0 å…¼å®¹ï¼šå–è„šæœ¬è‡ªèº«è·¯å¾„ä¸æ‰€åœ¨ç›®å½•
+$ScriptFile = $MyInvocation.MyCommand.Path
+$ScriptPath = Split-Path -Parent $ScriptFile
+
+# è¯·æ±‚ç®¡ç†å‘˜æƒé™
 if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Host "ÕıÔÚÇëÇó¹ÜÀíÔ±È¨ÏŞ..." -ForegroundColor Yellow
-    Start-Process PowerShell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    Write-Host "æ­£åœ¨è¯·æ±‚ç®¡ç†å‘˜æƒé™..." -ForegroundColor Yellow
+    Start-Process PowerShell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$ScriptFile`"" -Verb RunAs
     exit
 }
 
-# Í£Ö¹ÔËĞĞÊµÀı
-Write-Host "Í£Ö¹ÔËĞĞÊµÀı"
+Write-Host "åœæ­¢è¿è¡Œå®ä¾‹"
 Stop-Process -Name "watcher" -Force -ErrorAction SilentlyContinue
-# É¾³ı¾É·şÎñ
-$ServiceName = "JOYZL-Archive-Watcher"
-if (Get-Service -Name $ServiceName -ErrorAction SilentlyContinue) {
-    Write-Host "Í£Ö¹·şÎñ"
-    .\service.exe stop $ServiceName
-    Write-Host "É¾³ı·şÎñ"
-    .\service.exe delete $ServiceName
+
+# åˆ é™¤æ—§æœåŠ¡
+$ServiceExe = Join-Path $ScriptPath 'service.exe'
+if (Get-Service -Name "JOYZL-Archive-Watcher" -ErrorAction SilentlyContinue) {
+    Write-Host "åœæ­¢æœåŠ¡"
+    & $ServiceExe stop "JOYZL-Archive-Watcher"
+    Write-Host "åˆ é™¤æœåŠ¡"
+    & $ServiceExe delete "JOYZL-Archive-Watcher"
 }
-# É¾³ı¿ì½İ·½Ê½
+
+Write-Host "åˆ é™¤å¿«æ·æ–¹å¼"
 $ShortcutName = "JOYZL Archive Watcher.lnk"
-$ShortcutPath = [Environment]::GetFolderPath("CommonDesktopDirectory")
-$ShortcutPath = Join-Path $ShortcutPath $ShortcutName
+$wshShell = New-Object -ComObject WScript.Shell
+$ShortcutPath = Join-Path $wshShell.SpecialFolders.Item("AllUsersDesktop") $ShortcutName
 Remove-Item -Path $ShortcutPath -Recurse -Force -ErrorAction SilentlyContinue
-$ShortcutPath = [Environment]::GetFolderPath("CommonStartup")
-$ShortcutPath = Join-Path $ShortcutPath $ShortcutName
+$ShortcutPath = Join-Path $wshShell.SpecialFolders.Item("AllUsersStartup") $ShortcutName
 Remove-Item -Path $ShortcutPath -Recurse -Force -ErrorAction SilentlyContinue
 
-# ±ßÔµ¶ËÒÔ±¾µØÏµÍ³(LocalSystem)ÔËĞĞ
-# ÒÑ¾ßÓĞ×ã¹»È¨ÏŞÓÉÔ¶³Ì·¢Æğ³ÌĞò¸üĞÂ
-Write-Host "°²×° JOYZL Archive Watcher"
+# è¾¹ç¼˜ç«¯ä»¥æœ¬åœ°ç³»ç»Ÿ(LocalSystem)è¿è¡Œ
+# å·²å…·æœ‰è¶³å¤Ÿæƒé™ç”±è¿œç¨‹å‘èµ·ç¨‹åºæ›´æ–°
+Write-Host "å®‰è£… JOYZL Archive Watcher"
 $ProgramFiles = if ($env:ProgramW6432) { $env:ProgramW6432 } else { $env:ProgramFiles }
 $InstallDir = Join-Path $ProgramFiles "joyzl\archive-watcher"
 $DataDir = Join-Path $env:ProgramData "joyzl\archive-watcher"
 
-# ´´½¨Ä¿Â¼
+Write-Host "åˆ›å»ºç›®å½•"
 New-Item -ItemType Directory -Force -Path $InstallDir
 New-Item -ItemType Directory -Force -Path $DataDir
+Write-Host "ç¨‹åºç›®å½•: $InstallDir" -ForegroundColor Cyan
+Write-Host "æ•°æ®ç›®å½•: $DataDir" -ForegroundColor Cyan
 
-Write-Host "³ÌĞòÄ¿Â¼: $InstallDir" -ForegroundColor Cyan
-Write-Host "Êı¾İÄ¿Â¼: $DataDir" -ForegroundColor Cyan
-
-# ¸´ÖÆ³ÌĞòÎÄ¼ş
-Write-Host "¸´ÖÆ³ÌĞòÎÄ¼ş"
-robocopy $PSScriptRoot $InstallDir /E /COPY:DAT /R:3 /W:10 /NP /NFL /NDL
+Write-Host "å¤åˆ¶ç¨‹åºæ–‡ä»¶"
+robocopy $ScriptPath $InstallDir /E /COPY:DAT /R:3 /W:10 /NP /NFL /NDL
 robocopy $(Join-Path $InstallDir "patterns") $(Join-Path $DataDir "patterns") /E
 
-# ÒÆ¶¯ÅäÖÃÎÄ¼ş
+Write-Host "ç§»åŠ¨é…ç½®æ–‡ä»¶"
 $PropFile = Join-Path $InstallDir "watcher.properties"
 if (Test-Path $PropFile) {
     $DataProp = Join-Path $DataDir "watcher.properties"
     if (Test-Path $DataProp) {
-        # ÅäÖÃÎÄ¼şÒÑ´æÔÚ£¬±£ÁôÓÃ»§ÅäÖÃ"
+        Write-Host "é…ç½®æ–‡ä»¶å·²å­˜åœ¨ï¼Œä¿ç•™ç”¨æˆ·é…ç½®"
     } else {
-        # ÒÆ¶¯ÅäÖÃÎÄ¼ş
         Move-Item -Path $PropFile -Destination $DataDir -Force
+		Write-Host "å·²ç§»åŠ¨é…ç½®æ–‡ä»¶"
     }
 }
 
-# ÉèÖÃÊı¾İÄ¿Â¼È¨ÏŞ
-icacls $DataDir /grant "NT AUTHORITY\LocalSystem":M /T
-icacls $DataDir /grant "Users:(OI)(CI)M" /T
+Write-Host "è®¾ç½®æ•°æ®ç›®å½•æƒé™"
+& icacls $DataDir /grant 'NT AUTHORITY\SYSTEM:M' /T
+& icacls $DataDir /grant 'Users:(OI)(CI)M' /T
 
-# ×¢²á·şÎñ
-Write-Host "×¢²á·şÎñ"
-Push-Location $InstallDir
-
-$serviceExe = Join-Path $InstallDir "service.exe"
+Write-Host "æ³¨å†ŒæœåŠ¡"
+$ServiceExe = Join-Path $InstallDir "service.exe"
 $serviceArgs = @(
     "//IS//JOYZL-Archive-Watcher",
-    "--DisplayName=`"JOYZL Archive Éè±¸ÎÄ¼ş×Ô¶¯¹é¼¯·şÎñ`"",
-    "--Description=`"JOYZL Archive Éè±¸ÎÄ¼ş×Ô¶¯¹é¼¯·şÎñ£¬ÓÃÓÚÉè±¸ÊµÊä³öÎÄ¼ş×Ô¶¯¹é¼¯µ½·şÎñÆ÷¡£Èç¹ûÍ£Ö¹¸Ã·şÎñ£¬Ôò±»¼à¿ØµÄÉè±¸Êä³öµÄÎÄ¼ş²»»á±»ÉÏ´«µ½·şÎñÆ÷¡£`"",
+    "--DisplayName=`"JOYZL Archive è®¾å¤‡æ–‡ä»¶è‡ªåŠ¨å½’é›†æœåŠ¡`"",
+    "--Description=`"JOYZL Archive è®¾å¤‡æ–‡ä»¶è‡ªåŠ¨å½’é›†æœåŠ¡ï¼Œç”¨äºè®¾å¤‡å®è¾“å‡ºæ–‡ä»¶è‡ªåŠ¨å½’é›†åˆ°æœåŠ¡å™¨ã€‚å¦‚æœåœæ­¢è¯¥æœåŠ¡ï¼Œåˆ™è¢«ç›‘æ§çš„è®¾å¤‡è¾“å‡ºçš„æ–‡ä»¶ä¸ä¼šè¢«ä¸Šä¼ åˆ°æœåŠ¡å™¨ã€‚`"",
     "--JavaHome=`"$InstallDir\runtime`"",
     "--ServiceUser=LocalSystem",
     "--Startup=auto",
@@ -86,8 +85,8 @@ $serviceArgs = @(
     "--StartPath=`"$DataDir`"",
     "--StartMethod=start",
     "--StartClass=com.joyzl.watcher.Application",
-    "++JvmOptions=-Xms256m",
-    "++JvmOptions=-Xmx2048m",
+    "++JvmOptions=-Xms128m",
+    "++JvmOptions=-Xmx512m",
     "++JvmOptions=-Dfile.encoding=UTF-8",
     "++JvmOptions=-Duser.timezone=GMT+08",
     "++JvmOptions=-Duser.dir=`"$DataDir`"",
@@ -103,34 +102,42 @@ $serviceArgs = @(
     "--PidFile=pid"
 )
 
-& $serviceExe $serviceArgs
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "·şÎñ×¢²áÊ§°Ü: $LASTEXITCODE" -ForegroundColor Red
+$psi = New-Object System.Diagnostics.ProcessStartInfo
+$psi.FileName = $ServiceExe
+$psi.Arguments = ($serviceArgs -join ' ')    # â† æ•°ç»„ â†’ å­—ç¬¦ä¸²
+$psi.UseShellExecute = $false
+$psi.CreateNoWindow = $true
+$proc = [System.Diagnostics.Process]::Start($psi)
+$proc.WaitForExit()
+$code = $proc.ExitCode
+if ($code -ne 0) {
+    Write-Host "æœåŠ¡æ³¨å†Œå¤±è´¥: $code" -ForegroundColor Red
 } else {
-    Write-Host "·şÎñ×¢²á³É¹¦" -ForegroundColor Green
+    Write-Host "æœåŠ¡æ³¨å†ŒæˆåŠŸ" -ForegroundColor Green
 }
 
-# ·À»ğÇ½¹æÔò£¬ÔÊĞíÊ¹ÓÃÈÎºÎ¶Ë¿Ú
-New-NetFirewallRule -DisplayName "JOYZL Archive Watcher TCP" -Program $serviceExe -Direction Inbound -Protocol TCP -Action Allow
-New-NetFirewallRule -DisplayName "JOYZL Archive Watcher UDP" -Program $serviceExe -Direction Inbound -Protocol UDP -Action Allow
+Write-Host "è®¾ç½®é˜²ç«å¢™è§„åˆ™"
+# é˜²ç«å¢™è§„åˆ™ï¼Œå…è®¸ä½¿ç”¨ä»»ä½•ç«¯å£ï¼ˆPowerShell 2.0 å…¼å®¹ï¼šæ”¹ç”¨ netshï¼‰
+netsh advfirewall firewall add rule name="JOYZL Archive Watcher TCP" dir=in action=allow program="$ServiceExe" protocol=TCP
+netsh advfirewall firewall add rule name="JOYZL Archive Watcher UDP" dir=in action=allow program="$ServiceExe" protocol=UDP
 
-Write-Host "Æô¶¯·şÎñ: $ServiceName"
+Write-Host "å¯åŠ¨æœåŠ¡"
 try {
-    Start-Service -Name $ServiceName -ErrorAction Stop
+    Start-Service -Name "JOYZL-Archive-Watcher" -ErrorAction Stop
     $waited = 0
-    while ((Get-Service $ServiceName).Status -ne 'Running' -and $waited -lt 10) {
+    while ((Get-Service "JOYZL-Archive-Watcher").Status -ne 'Running' -and $waited -lt 10) {
         Start-Sleep -Seconds 1
         $waited++
     }
-    if ((Get-Service $ServiceName).Status -eq 'Running') {
-        Write-Host "·şÎñÒÑÆô¶¯"
+    if ((Get-Service "JOYZL-Archive-Watcher").Status -eq 'Running') {
+        Write-Host "æœåŠ¡å·²å¯åŠ¨"
     } else {
-        Write-Host "·şÎñÆô¶¯Ê§°Ü£¬µ±Ç°×´Ì¬: $((Get-Service $ServiceName).Status)"
+        Write-Host "æœåŠ¡å¯åŠ¨å¤±è´¥ï¼Œå½“å‰çŠ¶æ€: $((Get-Service "JOYZL-Archive-Watcher").Status)"
     }
 } catch {
-    Write-Host "Æô¶¯·şÎñÊ§°Ü: $_"
+    Write-Host "å¯åŠ¨æœåŠ¡å¤±è´¥: $_"
 }
 
-Write-Host "°²×°Íê³É" -ForegroundColor Green
-Write-Host "°´ÈÎÒâ¼üÍË³ö..."
+Write-Host "å®‰è£…å®Œæˆ" -ForegroundColor Green
+Write-Host "æŒ‰ä»»æ„é”®é€€å‡º..."
 [void][System.Console]::ReadKey($true)

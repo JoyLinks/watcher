@@ -35,8 +35,8 @@ jpackage ^
 	--jlink-options --no-man-pages^
 	--jlink-options --bind-services^
 	--jlink-options --include-locales=zh-cn^
-	--java-options -Xms256m^
-	--java-options -Xmx1024m^
+	--java-options -Xms128m^
+	--java-options -Xmx512m^
 	--java-options -Dfile.encoding=UTF-8^
 	--java-options -Duser.timezone=GMT+08^
 	--verbose
@@ -46,14 +46,17 @@ XCOPY publish\joyzl-archive-watcher\watcher publish\joyzl-archive-watcher /E /Q
 RMDIR publish\joyzl-archive-watcher\watcher /S /Q
 
 MD publish\joyzl-archive-watcher\patterns
-COPY publish\watcher\*.xml publish\joyzl-archive-watcher\patterns\
-COPY publish\watcher\service.exe publish\joyzl-archive-watcher\service.exe
-COPY publish\watcher\watcher.properties publish\joyzl-archive-watcher\watcher.properties
-COPY publish\watcher\install-desktop.ps1 publish\joyzl-archive-watcher\install-desktop.ps1
-COPY publish\watcher\install-service.ps1 publish\joyzl-archive-watcher\install-service.ps1
-COPY publish\watcher\uninstall.ps1 publish\joyzl-archive-watcher\uninstall.ps1
-COPY publish\watcher\update.ps1 publish\joyzl-archive-watcher\update.ps1
-COPY publish\watcher\readme.md publish\joyzl-archive-watcher\readme.md
+MOVE /Y publish\watcher\*.xml publish\joyzl-archive-watcher\patterns\
+MOVE /Y publish\watcher\service_windows-%ARCH%.exe publish\joyzl-archive-watcher\service.exe
+MOVE /Y publish\watcher\watcher.properties publish\joyzl-archive-watcher\watcher.properties
+MOVE /Y publish\watcher\install-desktop.ps1 publish\joyzl-archive-watcher\install-desktop.ps1
+MOVE /Y publish\watcher\install-desktop.cmd publish\joyzl-archive-watcher\install-desktop.cmd
+MOVE /Y publish\watcher\install-service.ps1 publish\joyzl-archive-watcher\install-service.ps1
+MOVE /Y publish\watcher\install-service.cmd publish\joyzl-archive-watcher\install-service.cmd
+MOVE /Y publish\watcher\uninstall.ps1 publish\joyzl-archive-watcher\uninstall.ps1
+MOVE /Y publish\watcher\uninstall.cmd publish\joyzl-archive-watcher\uninstall.cmd
+MOVE /Y publish\watcher\update.ps1 publish\joyzl-archive-watcher\update.ps1
+MOVE /Y publish\watcher\readme.md publish\joyzl-archive-watcher\readme.md
 
 jar cfM publish\joyzl-archive-watcher_windows-%ARCH%_%VERSION%.zip -C publish joyzl-archive-watcher
 

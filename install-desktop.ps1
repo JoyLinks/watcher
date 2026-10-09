@@ -1,125 +1,130 @@
-<#
+ï»¿<#
 .SYNOPSIS
-    °²×°½Å±¾£ºJOYZL Archive Watcher
+    å®‰è£…è„šæœ¬ï¼šJOYZL Archive Watcher
 .DESCRIPTION
-    °²×°³ÌĞòµ½£º%ProgramFiles%\joyzl\archive-watcher£¬
-    Êı¾İÎ»ÖÃÎª£º%ProgramData%\joyzl\archive-watcher£¬
-    ´´½¨×ÀÃæ¿ì½İ·½Ê½£¬
-    ÉèÖÃ¿ª»ú×Ô¶¯Æô¶¯£¬
-    µ÷Õûµ±Ç°ÓÃ»§Îª¹ÜÀíÔ±×é£¬
-    ¹Ø±ÕUAC½»»¥ÒÔÖ§³ÖÔ¶³Ì¸üĞÂ£¬
-    ĞèÒª¹ÜÀíÔ±È¨ÏŞÖ´ĞĞ¡£
+    å®‰è£…ç¨‹åºåˆ°ï¼š%ProgramFiles%\joyzl\archive-watcherï¼Œ
+    æ•°æ®ä½ç½®ä¸ºï¼š%ProgramData%\joyzl\archive-watcherï¼Œ
+    åˆ›å»ºæ¡Œé¢å¿«æ·æ–¹å¼ï¼Œ
+    è®¾ç½®å¼€æœºè‡ªåŠ¨å¯åŠ¨ï¼Œ
+    è°ƒæ•´å½“å‰ç”¨æˆ·ä¸ºç®¡ç†å‘˜ç»„ï¼Œ
+    å…³é—­UACäº¤äº’ä»¥æ”¯æŒè¿œç¨‹æ›´æ–°ï¼Œ
+    éœ€è¦ç®¡ç†å‘˜æƒé™æ‰§è¡Œã€‚
 #>
 
-# ÇëÇó¹ÜÀíÔ±È¨ÏŞ
+# PowerShell 2.0 å…¼å®¹ï¼šå–è„šæœ¬è‡ªèº«è·¯å¾„ä¸æ‰€åœ¨ç›®å½•
+$ScriptFile = $MyInvocation.MyCommand.Path
+$ScriptPath = Split-Path -Parent $ScriptFile
+
+# è¯·æ±‚ç®¡ç†å‘˜æƒé™
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
-    Write-Host "ÕıÔÚÇëÇó¹ÜÀíÔ±È¨ÏŞ..." -ForegroundColor Yellow
-    # ÒÔ¹ÜÀíÔ±È¨ÏŞÖØĞÂÆô¶¯µ±Ç°½Å±¾
-    Start-Process PowerShell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
-    # ÍË³öµ±Ç°µÄ·Ç¹ÜÀíÔ±½ø³Ì
+    Write-Host "æ­£åœ¨è¯·æ±‚ç®¡ç†å‘˜æƒé™..." -ForegroundColor Yellow
+    Start-Process PowerShell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$ScriptFile`"" -Verb RunAs
     exit
 }
 
-# ÅäÖÃµ±Ç°ÓÃ»§Îª¹ÜÀíÔ±²¢¹Ø±ÕUAC½»»¥
-# ×ÀÃæÄ£Ê½ÓÉµ±Ç°ÓÃ»§ÔËĞĞ£¬Òò´ËĞèÒªÌáÈ¨ÒÔ±ãÓÚÔ¶³Ì¸üĞÂ
-Write-Host "ÕıÔÚÅäÖÃÏµÍ³È¨ÏŞ"
+# é…ç½®å½“å‰ç”¨æˆ·ä¸ºç®¡ç†å‘˜å¹¶å…³é—­UACäº¤äº’
+# æ¡Œé¢æ¨¡å¼ç”±å½“å‰ç”¨æˆ·è¿è¡Œï¼Œå› æ­¤éœ€è¦ææƒä»¥ä¾¿äºè¿œç¨‹æ›´æ–°
+Write-Host "æ­£åœ¨é…ç½®ç³»ç»Ÿæƒé™"
 
-# »ñÈ¡µ±Ç°ÓÃ»§
+# è·å–å½“å‰ç”¨æˆ·
 $currentUser = $env:USERNAME
 if (-not $currentUser) {
-    # Èç¹û»·¾³±äÁ¿Îª¿Õ£¬³¢ÊÔ´Ó×¢²á±í¶ÁÈ¡×Ô¶¯µÇÂ¼ÓÃ»§Ãû
+    # å¦‚æœç¯å¢ƒå˜é‡ä¸ºç©ºï¼Œå°è¯•ä»æ³¨å†Œè¡¨è¯»å–è‡ªåŠ¨ç™»å½•ç”¨æˆ·å
     $currentUser = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "DefaultUserName" -ErrorAction SilentlyContinue).DefaultUserName
 }
 
-# ¼ì²éÓÃ»§ÊÇ·ñ´æÔÚ
-$localUser = Get-LocalUser -Name $currentUser -ErrorAction SilentlyContinue
-if (-not $localUser) {
-    Write-Host "ÓÃ»§ $currentUser ÎŞĞ§" -ForegroundColor Red
+# æ£€æŸ¥ç”¨æˆ·æ˜¯å¦å­˜åœ¨ï¼ˆPowerShell 2.0 å…¼å®¹ï¼šæ”¹ç”¨ net userï¼‰
+net user $currentUser 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ç”¨æˆ· $currentUser æ— æ•ˆ" -ForegroundColor Red
     exit 1
 }
 
-# ¼ì²éÓÃ»§²¢Ìí¼Ó¹ÜÀíÔ±×é
+# æ£€æŸ¥ç”¨æˆ·å¹¶æ·»åŠ ç®¡ç†å‘˜ç»„ï¼ˆPowerShell 2.0 å…¼å®¹ï¼šæ”¹ç”¨ net localgroupï¼‰
 $group = "Administrators"
-$isMember = Get-LocalGroupMember -Group $group | Where-Object { $_.Name -eq "$env:COMPUTERNAME\$currentUser" }
+$groupMembers = net localgroup $group 2>&1
+$isMember = $false
+foreach ($m in $groupMembers) {
+    $mText = "$m".Trim()
+    if ($mText -eq $currentUser -or $mText -eq "$env:COMPUTERNAME\$currentUser") {
+        $isMember = $true
+        break
+    }
+}
 if (-not $isMember) {
-    Write-Host "½«ÓÃ»§ $currentUser ¼ÓÈë $group ×é..." -ForegroundColor Yellow
-    Add-LocalGroupMember -Group $group -Member $currentUser
-    Write-Host "ÒÑÌí¼Ó" -ForegroundColor Green
+    Write-Host "å°†ç”¨æˆ· $currentUser åŠ å…¥ $group ç»„..." -ForegroundColor Yellow
+    net localgroup $group $currentUser /add
+    Write-Host "å·²æ·»åŠ " -ForegroundColor Green
 } else {
-    Write-Host "ÓÃ»§ $currentUser ÒÑÊÇ $group ×é³ÉÔ±" -ForegroundColor Green
+    Write-Host "ç”¨æˆ· $currentUser å·²æ˜¯ $group ç»„æˆå‘˜" -ForegroundColor Green
 }
 
-# ¹Ø±ÕUAC½»»¥
+# å…³é—­UACäº¤äº’
 $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
-$enableLUA = Get-ItemProperty -Path $regPath -Name "EnableLUA" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty EnableLUA
-if ($enableLUA -eq 0) {
-    # UAC ÒÑ¾­¹Ø±Õ
-} else {
-    Set-ItemProperty -Path $regPath -Name "ConsentPromptBehaviorAdmin" -Value 0 -Type DWord -Force
-    Set-ItemProperty -Path $regPath -Name "EnableLUA" -Value 0 -Type DWord -Force
-    Write-Host "ÒÑ¹Ø±Õ UAC ½»»¥£¬ĞëÖØÆôºóÉúĞ§" -ForegroundColor Green
-}
+Set-ItemProperty -Path $regPath -Name "ConsentPromptBehaviorAdmin" -Value 0 -Type DWord -Force
+Set-ItemProperty -Path $regPath -Name "EnableLUA" -Value 0 -Type DWord -Force
+Write-Host "å·²å…³é—­ UAC äº¤äº’ï¼Œé¡»é‡å¯åç”Ÿæ•ˆ" -ForegroundColor Green
 
-
-# Í£Ö¹ÔËĞĞÊµÀı
-Write-Host "Í£Ö¹ÔËĞĞÊµÀı"
+# åœæ­¢è¿è¡Œå®ä¾‹
+Write-Host "åœæ­¢è¿è¡Œå®ä¾‹"
 Stop-Process -Name "watcher" -Force -ErrorAction SilentlyContinue
-# É¾³ı¾É·şÎñ
+
+# åˆ é™¤æ—§æœåŠ¡
+$ServiceExe = Join-Path $ScriptPath 'service.exe'
 if (Get-Service -Name "JOYZL-Archive-Watcher" -ErrorAction SilentlyContinue) {
-    Write-Host "Í£Ö¹·şÎñ"
-    .\service.exe stop "JOYZL-Archive-Watcher"
-    Write-Host "É¾³ı·şÎñ"
-    .\service.exe delete "JOYZL-Archive-Watcher"
+    Write-Host "åœæ­¢æœåŠ¡"
+    & $ServiceExe stop "JOYZL-Archive-Watcher"
+    Write-Host "åˆ é™¤æœåŠ¡"
+    & $ServiceExe delete "JOYZL-Archive-Watcher"
 }
 
-Write-Host "°²×° JOYZL Archive Watcher"
+Write-Host "å®‰è£… JOYZL Archive Watcher"
 $ProgramFiles = if ($env:ProgramW6432) { $env:ProgramW6432 } else { $env:ProgramFiles }
 $InstallDir = Join-Path $ProgramFiles "joyzl\archive-watcher"
 $DataDir = Join-Path $env:ProgramData "joyzl\archive-watcher"
 
+Write-Host "åˆ›å»ºç›®å½•"
 New-Item -ItemType Directory -Force -Path $InstallDir
 New-Item -ItemType Directory -Force -Path $DataDir
+Write-Host "ç¨‹åºç›®å½•: $InstallDir" -ForegroundColor Cyan
+Write-Host "æ•°æ®ç›®å½•: $DataDir" -ForegroundColor Cyan
 
-Write-Host "³ÌĞòÄ¿Â¼: $InstallDir" -ForegroundColor Cyan
-Write-Host "Êı¾İÄ¿Â¼: $DataDir" -ForegroundColor Cyan
-
-Write-Host "¸´ÖÆ³ÌĞòÎÄ¼ş"
-robocopy $PSScriptRoot $InstallDir /E /COPY:DAT /R:3 /W:10 /NP /NFL /NDL
+Write-Host "å¤åˆ¶ç¨‹åºæ–‡ä»¶"
+robocopy $ScriptPath $InstallDir /E /COPY:DAT /R:3 /W:10 /NP /NFL /NDL
 robocopy $(Join-Path $InstallDir "patterns") $(Join-Path $DataDir "patterns") /E
 
-# ÒÆ¶¯ÅäÖÃÎÄ¼ş
+Write-Host "ç§»åŠ¨é…ç½®æ–‡ä»¶"
 $PropFile = Join-Path $InstallDir "watcher.properties"
 if (Test-Path $PropFile) {
     $DataProp = Join-Path $DataDir "watcher.properties"
     if (Test-Path $DataProp) {
-        # ÅäÖÃÎÄ¼şÒÑ´æÔÚ£¬±£ÁôÓÃ»§ÅäÖÃ"
+		Write-Host "é…ç½®æ–‡ä»¶å·²å­˜åœ¨ï¼Œä¿ç•™ç”¨æˆ·é…ç½®"
     } else {
-        # ÒÆ¶¯ÅäÖÃÎÄ¼ş
         Move-Item -Path $PropFile -Destination $DataDir -Force
+        Write-Host "å·²ç§»åŠ¨é…ç½®æ–‡ä»¶"
     }
 }
 
-# ÉèÖÃÊı¾İÄ¿Â¼È¨ÏŞ
+Write-Host "è®¾ç½®æ•°æ®ç›®å½•æƒé™"
 icacls $DataDir /grant "Users:(OI)(CI)M" /T
 
-# ´´½¨×ÀÃæ¿ì½İ·½Ê½£¨ËùÓĞÓÃ»§£©
+Write-Host "åˆ›å»ºå¿«æ·æ–¹å¼"
+# åˆ›å»ºæ¡Œé¢å¿«æ·æ–¹å¼ï¼ˆæ‰€æœ‰ç”¨æˆ·ï¼‰
 $ShortcutName = "JOYZL Archive Watcher.lnk"
-$ShortcutPath = [Environment]::GetFolderPath("CommonDesktopDirectory")
-$ShortcutPath = Join-Path $ShortcutPath $ShortcutName
-if (Test-Path $ShortcutPath) { Remove-Item $ShortcutPath -Force }
 $WScriptShell = New-Object -ComObject WScript.Shell
+$ShortcutPath = Join-Path $WScriptShell.SpecialFolders.Item("AllUsersDesktop") $ShortcutName
+if (Test-Path $ShortcutPath) { Remove-Item $ShortcutPath -Force }
 $Shortcut = $WScriptShell.CreateShortcut($ShortcutPath)
 $Shortcut.TargetPath = Join-Path $InstallDir "watcher.exe"
 $Shortcut.WorkingDirectory = $DataDir
 $Shortcut.Description = "JOYZL Archive Watcher"
 $Shortcut.IconLocation = (Join-Path $InstallDir "watcher.exe") + ",0"
 $Shortcut.Save()
-Write-Host "ÒÑ´´½¨×ÀÃæ¿ì½İ·½Ê½"
+Write-Host "å·²åˆ›å»ºæ¡Œé¢å¿«æ·æ–¹å¼"
 
-# ÉèÖÃ¿ª»ú×Ô¶¯Æô¶¯£¨ËùÓĞÓÃ»§£©
-$StartupPath = [Environment]::GetFolderPath("CommonStartup")
-$StartupPath = Join-Path $StartupPath $ShortcutName
+# è®¾ç½®å¼€æœºè‡ªåŠ¨å¯åŠ¨ï¼ˆæ‰€æœ‰ç”¨æˆ·ï¼‰
+$StartupPath = Join-Path $WScriptShell.SpecialFolders.Item("AllUsersStartup") $ShortcutName
 if (Test-Path $StartupPath) { Remove-Item $StartupPath -Force }
 $Shortcut = $WScriptShell.CreateShortcut($StartupPath)
 $Shortcut.TargetPath = Join-Path $InstallDir "watcher.exe"
@@ -127,29 +132,15 @@ $Shortcut.WorkingDirectory = $DataDir
 $Shortcut.Description = "JOYZL Archive Watcher"
 $Shortcut.IconLocation = (Join-Path $InstallDir "watcher.exe") + ",0"
 $Shortcut.Save()
-Write-Host "ÒÑ´´½¨¿ª»úÆô¶¯¿ì½İ·½Ê½"
+Write-Host "å·²åˆ›å»ºå¼€æœºå¯åŠ¨å¿«æ·æ–¹å¼"
 
-# ·À»ğÇ½¹æÔò£¬ÔÊĞíÊ¹ÓÃÈÎºÎ¶Ë¿Ú
-$exeFile=Join-Path $InstallDir "watcher.exe"
-New-NetFirewallRule -DisplayName "JOYZL Archive Watcher TCP" -Program $exeFile -Direction Inbound -Protocol TCP -Action Allow
-New-NetFirewallRule -DisplayName "JOYZL Archive Watcher UDP" -Program $exeFile -Direction Inbound -Protocol UDP -Action Allow
+Write-Host "è®¾ç½®é˜²ç«å¢™è§„åˆ™"
+# é˜²ç«å¢™è§„åˆ™ï¼Œå…è®¸ä½¿ç”¨ä»»ä½•ç«¯å£ï¼ˆPowerShell 2.0 å…¼å®¹ï¼šæ”¹ç”¨ netshï¼‰
+$exeFile = Join-Path $InstallDir "watcher.exe"
+netsh advfirewall firewall add rule name="JOYZL Archive Watcher TCP" dir=in action=allow program="$exeFile" protocol=TCP
+netsh advfirewall firewall add rule name="JOYZL Archive Watcher UDP" dir=in action=allow program="$exeFile" protocol=UDP
 
-Write-Host "°²×°Íê³É" -ForegroundColor Green
-
-if ($enableLUA -eq 0) {
-    # UAC ÒÑ¾­¹Ø±Õ£¬ÎŞĞëÖØÆôÏµÍ³
-    Start-Process -FilePath $shortcutPath
-    Write-Host "°´ÈÎÒâ¼üÍË³ö..."
-    [void][System.Console]::ReadKey($true)
-} else {
-    Write-Host "ÏµÍ³½«ÔÚ 10 ÃëºóÖØÆô£¬°´ÈÎÒâ¼üÈ¡Ïû..." -ForegroundColor Yellow
-    $timer = [System.Diagnostics.Stopwatch]::StartNew()
-    while ($timer.Elapsed.TotalSeconds -lt 10) {
-        if ([Console]::KeyAvailable) {
-            $key = [Console]::ReadKey($true)
-            exit
-        }
-        Start-Sleep -Milliseconds 500
-    }
-    Restart-Computer -Force
-}
+Start-Process -FilePath $ShortcutPath
+Write-Host "å®‰è£…å®Œæˆ" -ForegroundColor Green
+Write-Host "æŒ‰ä»»æ„é”®é€€å‡º..."
+[void][System.Console]::ReadKey($true)

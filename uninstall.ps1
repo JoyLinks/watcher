@@ -1,54 +1,59 @@
-<#
+ï»¿<#
 .SYNOPSIS
-    Ğ¶ÔØ JOYZL Archive Watcher
+    å¸è½½ JOYZL Archive Watcher
 .DESCRIPTION
-    Í£Ö¹²¢É¾³ı Windows ·şÎñ£¬
-    É¾³ı³ÌĞòÎÄ¼ş Program Files\joyzl\archive-watcher£¬
-    É¾³ıÊı¾İÎÄ¼ş ProgramData\joyzl\archive-watcher£¬
-    ĞèÒª¹ÜÀíÔ±È¨ÏŞÔËĞĞ¡£
+    åœæ­¢å¹¶åˆ é™¤ Windows æœåŠ¡ï¼Œ
+    åˆ é™¤ç¨‹åºæ–‡ä»¶ Program Files\joyzl\archive-watcherï¼Œ
+    åˆ é™¤æ•°æ®æ–‡ä»¶ ProgramData\joyzl\archive-watcherï¼Œ
+    éœ€è¦ç®¡ç†å‘˜æƒé™è¿è¡Œã€‚
 #>
 
-# ÇëÇó¹ÜÀíÔ±È¨ÏŞ
+# PowerShell 2.0 å…¼å®¹ï¼šå–è„šæœ¬è‡ªèº«è·¯å¾„
+$ScriptFile = $MyInvocation.MyCommand.Path
+$ScriptPath = Split-Path -Parent $ScriptFile
+
+# è¯·æ±‚ç®¡ç†å‘˜æƒé™
 if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Host "ÕıÔÚÇëÇó¹ÜÀíÔ±È¨ÏŞ..." -ForegroundColor Yellow
-    Start-Process PowerShell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    Write-Host "æ­£åœ¨è¯·æ±‚ç®¡ç†å‘˜æƒé™..." -ForegroundColor Yellow
+    Start-Process PowerShell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$ScriptFile`"" -Verb RunAs
     exit
 }
 
-Write-Host "Ğ¶ÔØ JOYZL Archive Watcher"
+Write-Host "å¸è½½ JOYZL Archive Watcher"
 
-Write-Host "Í£Ö¹ÔËĞĞÊµÀı"
+Write-Host "åœæ­¢è¿è¡Œå®ä¾‹"
 Stop-Process -Name "watcher" -Force -ErrorAction SilentlyContinue
 
-# Í£Ö¹²¢É¾³ı·şÎñ
+# åœæ­¢å¹¶åˆ é™¤æœåŠ¡
+$ServiceExe = Join-Path $ScriptPath 'service.exe'
 if (Get-Service -Name "JOYZL-Archive-Watcher" -ErrorAction SilentlyContinue) {
-    Write-Host "Í£Ö¹·şÎñ"
-    .\service.exe stop "JOYZL-Archive-Watcher"
-    Write-Host "É¾³ı·şÎñ"
-    .\service.exe delete "JOYZL-Archive-Watcher"
+    Write-Host "åœæ­¢æœåŠ¡"
+    & $serviceExe stop "JOYZL-Archive-Watcher"
+    Write-Host "åˆ é™¤æœåŠ¡"
+    & $serviceExe delete "JOYZL-Archive-Watcher"
 }
 
-# É¾³ı³ÌĞòÎÄ¼ş
+Write-Host "åˆ é™¤ç¨‹åºæ–‡ä»¶"
 $InstallDir = Join-Path $env:ProgramFiles "joyzl\archive-watcher"
 Remove-Item -Path $InstallDir -Recurse -Force -ErrorAction SilentlyContinue
 
-# É¾³ıÊı¾İÎÄ¼ş
+Write-Host "åˆ é™¤æ•°æ®æ–‡ä»¶"
 $DataDir = Join-Path $env:ProgramData "joyzl\archive-watcher"
 Remove-Item -Path $DataDir -Recurse -Force -ErrorAction SilentlyContinue
 
-# É¾³ı·À»ğÇ½¹æÔò
-Remove-NetFirewallRule -DisplayName "JOYZL Archive Watcher TCP" -ErrorAction SilentlyContinue
-Remove-NetFirewallRule -DisplayName "JOYZL Archive Watcher UDP" -ErrorAction SilentlyContinue
+Write-Host "åˆ é™¤é˜²ç«å¢™è§„åˆ™"
+# åˆ é™¤é˜²ç«å¢™è§„åˆ™ï¼ˆPowerShell 2.0 å…¼å®¹ï¼šæ”¹ç”¨ netshï¼‰
+netsh advfirewall firewall delete rule name="JOYZL Archive Watcher TCP" | Out-Null
+netsh advfirewall firewall delete rule name="JOYZL Archive Watcher UDP" | Out-Null
 
-# É¾³ı¿ì½İ·½Ê½
+Write-Host "åˆ é™¤å¿«æ·æ–¹å¼"
 $ShortcutName = "JOYZL Archive Watcher.lnk"
-$ShortcutPath = [Environment]::GetFolderPath("CommonDesktopDirectory")
-$ShortcutPath = Join-Path $ShortcutPath $ShortcutName
+$wshShell = New-Object -ComObject WScript.Shell
+$ShortcutPath = Join-Path $wshShell.SpecialFolders.Item("AllUsersDesktop") $ShortcutName
 Remove-Item -Path $ShortcutPath -Recurse -Force -ErrorAction SilentlyContinue
-$ShortcutPath = [Environment]::GetFolderPath("CommonStartup")
-$ShortcutPath = Join-Path $ShortcutPath $ShortcutName
+$ShortcutPath = Join-Path $wshShell.SpecialFolders.Item("AllUsersStartup") $ShortcutName
 Remove-Item -Path $ShortcutPath -Recurse -Force -ErrorAction SilentlyContinue
 
-Write-Host "Ğ¶ÔØÍê³É" -ForegroundColor Green
-Write-Host "°´ÈÎÒâ¼üÍË³ö..."
+Write-Host "å¸è½½å®Œæˆ" -ForegroundColor Green
+Write-Host "æŒ‰ä»»æ„é”®é€€å‡º..."
 [void][System.Console]::ReadKey($true)
