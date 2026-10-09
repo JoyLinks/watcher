@@ -34,6 +34,7 @@ public class Application {
 	private static Uploader uploader;
 	private static Watcher watcher;
 	private static Model model;
+	private static Thread main;
 
 	public static void main(String[] args) {
 		start(args);
@@ -168,6 +169,7 @@ public class Application {
 	}
 
 	private static void daemon() {
+		main = Thread.currentThread();
 		try {
 			while (watcher != null && uploader != null) {
 				if (LoggerService.last(60 * 1000)) {
@@ -193,6 +195,10 @@ public class Application {
 			if (uploader != null) {
 				uploader.close();
 				uploader = null;
+			}
+			if (main != null) {
+				main.interrupt();
+				main = null;
 			}
 		} catch (Exception e) {
 			Logger.error(e);

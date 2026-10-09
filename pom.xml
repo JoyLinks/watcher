@@ -6,7 +6,7 @@
 
 	<groupId>com.joyzl</groupId>
 	<artifactId>watcher</artifactId>
-	<version>1.2.0</version>
+	<version>1.2.1</version>
 
 	<name>JOYZL Watcher</name>
 	<description>文档自动归集客户端工具软件</description>
