@@ -74,7 +74,7 @@ Write-Host "设置数据目录权限"
 
 Write-Host "注册服务"
 $ServiceExe = Join-Path $InstallDir "service.exe"
-$serviceArgs = @(
+$ServiceArgs = @(
     "//IS//JOYZL-Archive-Watcher",
     "--DisplayName=`"JOYZL Archive 设备文件自动归集服务`"",
     "--Description=`"JOYZL Archive 设备文件自动归集服务，用于设备实输出文件自动归集到服务器。如果停止该服务，则被监控的设备输出的文件不会被上传到服务器。`"",
@@ -102,13 +102,9 @@ $serviceArgs = @(
     "--PidFile=pid"
 )
 
-$psi = New-Object System.Diagnostics.ProcessStartInfo
-$psi.FileName = $ServiceExe
-$psi.Arguments = ($serviceArgs -join ' ')    # ← 数组 → 字符串
-$psi.UseShellExecute = $false
-$psi.CreateNoWindow = $true
-$proc = [System.Diagnostics.Process]::Start($psi)
-$proc.WaitForExit()
+# 使用 Start-Process 替代 ProcessStartInfo（兼容 PowerShell 2.0）
+$proc = Start-Process -FilePath $ServiceExe -ArgumentList $ServiceArgs -Wait -PassThru -NoNewWindow
+$handle = $proc.Handle
 $code = $proc.ExitCode
 if ($code -ne 0) {
     Write-Host "服务注册失败: $code" -ForegroundColor Red
