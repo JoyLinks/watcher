@@ -187,6 +187,10 @@ public class Application {
 
 	public static void stop(String[] args) {
 		Logger.info("STOP");
+		if (main != null) {
+			main.interrupt();
+			main = null;
+		}
 		try {
 			if (watcher != null) {
 				Avoidance.remove(watcher.path());
@@ -196,10 +200,6 @@ public class Application {
 			if (uploader != null) {
 				uploader.close();
 				uploader = null;
-			}
-			if (main != null) {
-				main.interrupt();
-				main = null;
 			}
 		} catch (Exception e) {
 			Logger.error(e);
