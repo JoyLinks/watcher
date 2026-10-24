@@ -10,7 +10,7 @@ IF EXIST publish RD /S /Q publish
 
 CALL mvn -f pom.xml clean package -U
 
-SET VERSION=1.2.2
+SET VERSION=1.2.3
 SET ARCH=%PROCESSOR_ARCHITECTURE%
 
 ECHO Build executable JOYZL Archive Watcher
