@@ -40,7 +40,7 @@
 		<dependency>
 			<groupId>com.joyzl</groupId>
 			<artifactId>network</artifactId>
-			<version>3.1.17</version>
+			<version>3.1.19</version>
 		</dependency>
 		<dependency>
 			<groupId>com.joyzl</groupId>
