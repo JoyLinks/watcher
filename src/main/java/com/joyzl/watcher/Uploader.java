@@ -42,12 +42,14 @@ final class Uploader implements Runnable {
 	private final String host, path;
 	private final int port;
 	private final int uploadExpires, stableExpires;
-	private volatile String number;
 
 	private final ConcurrentLinkedQueue<TaskFile> QUEUE = new ConcurrentLinkedQueue<>();
 	private final ScheduledFuture<?> future;
+	private final WaterMark waterMark;
+	private volatile String number;
 
-	public Uploader(String serverAPI, String number, int ue, int se) throws MalformedURLException {
+	public Uploader(WaterMark waterMark, String serverAPI, String number, int ue, int se) throws MalformedURLException {
+		this.waterMark = waterMark;
 		this.number = number;
 
 		final URL u = new URL(url = serverAPI);
@@ -158,13 +160,20 @@ final class Uploader implements Runnable {
 		protected void received(HTTPClient client, Request request, Response response) {
 			if (response.getStatus() == HTTPStatus.OK.code()) {
 				Logger.debug("DONE ", current);
+				try {
+					// 更新水位线
+					waterMark.update(current.lastModifiedTime());
+				} catch (IOException e) {
+					Logger.error(e);
+				}
 				current = null;
 				size++;
 			} else {
 				Logger.debug("FAIL ", current, " ", response);
 				// 错误的排后，防止一直错而导致其它耽误
-				QUEUE.add(current);
-				current = null;
+				// 为了配合水位线，不在后补队列
+				// QUEUE.add(current);
+				// current = null;
 				client.reset();
 			}
 
@@ -266,13 +275,19 @@ final class Uploader implements Runnable {
 		Executor.submit(new Runnable() {
 			@Override
 			public void run() {
+				HttpURLConnection connection = null;
 				try {
 					final URL u = new URL(url);
-					final HttpURLConnection connection = (HttpURLConnection) u.openConnection();
+					connection = (HttpURLConnection) u.openConnection();
 					connection.setConnectTimeout((int) (handler.getTimeoutRead() / 1000));
-					Logger.debug("TEST ", connection.getResponseMessage());
+					connection.getResponseMessage();
 				} catch (IOException e) {
-					Logger.error("TEST ", e.getMessage());
+					// Logger.error("TEST ", e.getMessage());
+					// 忽略
+				} finally {
+					if (connection != null) {
+						connection.disconnect();
+					}
 				}
 			}
 		});
@@ -288,6 +303,11 @@ final class Uploader implements Runnable {
 
 	public String url() {
 		return url;
+	}
+
+	/** 待上传文件数 */
+	public int queue() {
+		return QUEUE.size();
 	}
 
 	/** 已上传文件数 */

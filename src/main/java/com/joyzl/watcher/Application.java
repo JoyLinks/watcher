@@ -31,6 +31,7 @@ public class Application {
 
 	private final static Setting setting = new Setting();
 	private final static Backdoor backdoor = new Backdoor();
+	private static WaterMark waterMark;
 	private static Uploader uploader;
 	private static Watcher watcher;
 	private static Model model;
@@ -75,6 +76,9 @@ public class Application {
 				}
 			});
 
+			// 初始化水位线
+			waterMark = new WaterMark();
+
 			reset();
 			Tray.show();
 			Window.show();
@@ -115,7 +119,7 @@ public class Application {
 		}
 		if (noEmpty(setting.getHTTPServer())) {
 			try {
-				uploader = new Uploader(setting.getHTTPServer(), setting.getNumber(), setting.getUploadExpires(), setting.getStableExpires());
+				uploader = new Uploader(waterMark, setting.getHTTPServer(), setting.getNumber(), setting.getUploadExpires(), setting.getStableExpires());
 				uploader.test();
 			} catch (Exception e) {
 				Window.error(e.getMessage());
@@ -152,7 +156,7 @@ public class Application {
 			if (Files.exists(path)) {
 				if (uploader != null && model != null) {
 					try {
-						watcher = new Watcher(uploader, model, path);
+						watcher = new Watcher(waterMark, uploader, model, path);
 						watcher.start();
 					} catch (AccessDeniedException e) {
 						Window.error("无权访问:" + e.getMessage());
@@ -201,6 +205,10 @@ public class Application {
 				uploader.close();
 				uploader = null;
 			}
+			if (waterMark != null) {
+				waterMark.close();
+				waterMark = null;
+			}
 		} catch (Exception e) {
 			Logger.error(e);
 		} finally {
@@ -212,6 +220,10 @@ public class Application {
 
 	static Setting setting() {
 		return setting;
+	}
+
+	static WaterMark waterMark() {
+		return waterMark;
 	}
 
 	static Uploader uploader() {

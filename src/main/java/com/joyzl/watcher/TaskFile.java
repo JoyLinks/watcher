@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 
 /**
  * 文件上传任务
@@ -55,6 +56,11 @@ final class TaskFile {
 		} catch (IOException e) {
 			return false;
 		}
+	}
+
+	public long lastModifiedTime() throws IOException {
+		final FileTime time = Files.getLastModifiedTime(file);
+		return time.toMillis();
 	}
 
 	@Override

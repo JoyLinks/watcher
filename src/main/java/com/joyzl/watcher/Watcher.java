@@ -8,6 +8,7 @@ package com.joyzl.watcher;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.ClosedWatchServiceException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -18,7 +19,10 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 
@@ -32,6 +36,7 @@ import com.joyzl.logger.Logger;
  */
 final class Watcher extends Thread {
 
+	private final WaterMark waterMark;
 	private final WatchService watch;
 	private final Uploader uploader;
 	private final Model model;
@@ -40,8 +45,9 @@ final class Watcher extends Thread {
 	/** 发现并匹配的文件数 */
 	private int size = 0;
 
-	public Watcher(Uploader uploader, Model model, Path path) throws IOException {
+	public Watcher(WaterMark waterMark, Uploader uploader, Model model, Path path) throws IOException {
 		watch = FileSystems.getDefault().newWatchService();
+		this.waterMark = waterMark;
 		this.uploader = uploader;
 		this.model = model;
 		this.path = path;
@@ -77,6 +83,13 @@ final class Watcher extends Thread {
 		// 每个被监视目录响应内部变化事件
 		// 不会触发被监视目录自身的变化
 		// 不会触发子目录内的变化
+
+		// 20261118
+		// 增加水位线功能，补传中断文件
+		final List<Path> paths = new ArrayList<>();
+		final List<FileEntry> files = new ArrayList<>();
+		final long timestamp = waterMark.timestamp();
+
 		try {
 			// 遍历所有文件夹，包含最外层
 			Files.walkFileTree(path, new SimpleFileVisitor<>() {
@@ -85,19 +98,39 @@ final class Watcher extends Thread {
 					if (exc == null) {
 						// 过滤匹配目录，不含文件名
 						// 这些目录是历史结果性的，特别是按目录匹配时
-						Matcher matcher;
-						for (ModelFile file : model.files()) {
-							matcher = file.name().matcher(dir.toString());
-							if (matcher.find()) {
-								return FileVisitResult.CONTINUE;
+						// 即便匹配目录也是按文件入队，以下视乎无意义
+						// Matcher matcher;
+						// for (ModelFile file : model.files()) {
+						// matcher = file.name().matcher(dir.toString());
+						// if (matcher.find()) {
+						// return FileVisitResult.CONTINUE;
+						// }
+						// }
+
+						// 20261118
+						// 目录水位线补传
+						FileTime time = Files.getLastModifiedTime(dir);
+						if (time.toMillis() > timestamp) {
+							try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
+								for (Path file : stream) {
+									if (Files.isRegularFile(file)) {
+										time = Files.getLastModifiedTime(file);
+										if (time.toMillis() > timestamp) {
+											files.add(new FileEntry(file, time));
+										}
+									}
+								}
 							}
 						}
 
-						Logger.debug("WATCH ", dir);
-						watchs.put(dir, dir.register(watch, //
-							StandardWatchEventKinds.ENTRY_CREATE, //
-							StandardWatchEventKinds.ENTRY_DELETE, //
-							StandardWatchEventKinds.OVERFLOW));
+						// 配合补传须在补传入队后监视
+						// Logger.debug("WATCH ", dir);
+						// watchs.put(dir, dir.register(watch, //
+						// StandardWatchEventKinds.ENTRY_CREATE, //
+						// StandardWatchEventKinds.ENTRY_DELETE, //
+						// StandardWatchEventKinds.OVERFLOW));
+						paths.add(dir);
+
 						return FileVisitResult.CONTINUE;
 					} else {
 						throw exc;
@@ -105,9 +138,30 @@ final class Watcher extends Thread {
 				}
 			});
 
+			// 候选文件补传入队
+			files.sort(null);
+			Path relative, absolute;
+			for (FileEntry file : files) {
+				absolute = file.file;
+				relative = absolute.subpath(path.getNameCount(), absolute.getNameCount());
+				match(file.file, relative);
+			}
+			Logger.debug("RETRY ", size);
+
+			// 监视文件夹
+			// 应在补传文件入队之后，防止新文件插队
+			for (Path dir : paths) {
+				Logger.debug("WATCH ", dir);
+				watchs.put(dir, dir.register(watch, //
+					StandardWatchEventKinds.ENTRY_CREATE, //
+					StandardWatchEventKinds.ENTRY_DELETE, //
+					StandardWatchEventKinds.OVERFLOW));
+			}
+			Logger.debug("WATCH ", watchs.size());
+
 			// 阻塞线程等待事件
 			WatchKey key;
-			Path relative, absolute, last = path;
+			Path last = path;
 			while ((key = watch.take()) != null) {
 				for (WatchEvent<?> event : key.pollEvents()) {
 					if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
@@ -122,6 +176,9 @@ final class Watcher extends Thread {
 									// StandardWatchEventKinds.ENTRY_CREATE, //
 									// StandardWatchEventKinds.ENTRY_DELETE, //
 									// StandardWatchEventKinds.OVERFLOW));
+
+									// 释疑：即便按目录匹配，也是单个文件检查
+									// 因为目录属性不能准确反映其中文件是否稳定
 
 									// 如果目录是移动而来，其中的文件不会触发事件
 									// 以下遍历将包括最外层目录，无须单独处理外层
@@ -243,5 +300,21 @@ final class Watcher extends Thread {
 
 	public int size() {
 		return size;
+	}
+
+	/** 补传文件排序实体 */
+	private class FileEntry implements Comparable<FileEntry> {
+		final Path file;
+		final long time;
+
+		FileEntry(Path file, FileTime time) {
+			this.time = time.toMillis();
+			this.file = file;
+		}
+
+		@Override
+		public int compareTo(FileEntry o) {
+			return Long.compare(time, o.time);
+		}
 	}
 }
